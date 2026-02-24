@@ -1,0 +1,46 @@
+---
+import "../styles/global.css";
+import WebGLBackground from "../components/WebGLBackground.astro";
+
+interface Props {
+	title?: string;
+	description?: string;
+}
+
+const {
+	title = "DevAgency | Modern Software & AI Solutions",
+	description = "We build premium, scalable software and intelligent AI solutions to accelerate your business growth.",
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="description" content={description} />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="generator" content={Astro.generator} />
+		<!-- Google Fonts: Inter -->
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		                <link
+		                        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+		                        rel="stylesheet"
+		                        media="print"
+		                        onload="this.media='all'"
+		                />
+		                <noscript>
+		                        <link
+		                                href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+		                                rel="stylesheet"
+		                        />
+		                </noscript>		<title>{title}</title>
+	</head>
+	<body
+		class="bg-black text-white min-h-screen flex flex-col overflow-x-hidden"
+	>
+		<WebGLBackground />
+		<slot />
+	</body>
+</html>
