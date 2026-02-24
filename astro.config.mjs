@@ -6,17 +6,10 @@ import cloudflare from '@astrojs/cloudflare';
 // https://astro.build/config
 export default defineConfig({
   output: 'static',
-  adapter: cloudflare({
-    platformProxy: {
-      enabled: true
-    }
-  }),
+  adapter: cloudflare(),
   image: {
     service: {
-      entrypoint: 'astro/assets/services/sharp',
-      config: {
-        limitInputPixels: true
-      }
+      entrypoint: 'astro/assets/services/sharp'
     }
   },
   vite: {
