@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+@theme {
+  --color-dev-light: #f8fafc;
+  --color-dev-accent: #8b5cf6;
+  --font-inter: 'Inter', sans-serif;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-dev-light text-slate-900 antialiased selection:bg-dev-accent selection:text-white;
+  }
+}
