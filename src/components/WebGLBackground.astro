@@ -88,14 +88,19 @@
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1)); // Cap out pixel ratio to 1 for mobile + integrate graphics perf
 
     const renderScene = new RenderPass(scene, camera);
-    const bloomPass = new UnrealBloomPass(new Vector2(256, 256), 1.5, 0.4, 0.85); // Dramatically reduced bloom resolution
-    bloomPass.threshold = 0.2;
-    bloomPass.strength = 1.2;
-    bloomPass.radius = 0.5;
-
     const composer = new EffectComposer(renderer);
     composer.addPass(renderScene);
-    composer.addPass(bloomPass);
+
+    // Conditional Bloom based on device performance (disable on mobile)
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    
+    if (!isMobile) {
+        const bloomPass = new UnrealBloomPass(new Vector2(256, 256), 1.5, 0.4, 0.85); // Dramatically reduced bloom resolution
+        bloomPass.threshold = 0.2;
+        bloomPass.strength = 1.2;
+        bloomPass.radius = 0.5;
+        composer.addPass(bloomPass);
+    }
 
     // Malla Esférica base ("Cerebro" placeholder)
     const geometry1 = new SphereGeometry(1.5, 32, 32);
