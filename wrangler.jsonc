@@ -1,5 +1,12 @@
 {
-  "name": "devagency",
-  "pages_build_output_dir": "dist",
-  "compatibility_date": "2025-02-24"
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "devagency",
+	"compatibility_date": "2025-02-24",
+	"assets": {
+		"directory": "./dist",
+		"binding": "ASSETS"
+	},
+	"observability": {
+		"enabled": true
+	}
 }
