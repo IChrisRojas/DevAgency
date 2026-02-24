@@ -10,7 +10,6 @@
     "deploy": "astro build && wrangler pages deploy dist --project-name=devagency"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^12.3.0",
     "@astrojs/react": "^4.4.2",
     "@tailwindcss/vite": "^4.2.1",
     "@types/react": "^19.2.14",
