@@ -6,12 +6,9 @@ import cloudflare from '@astrojs/cloudflare';
 // https://astro.build/config
 export default defineConfig({
   output: 'static',
-  adapter: cloudflare(),
-  image: {
-    service: {
-      entrypoint: 'astro/assets/services/sharp'
-    }
-  },
+  adapter: cloudflare({
+    imageService: 'compile'
+  }),
   vite: {
     plugins: [tailwindcss()]
   },
