@@ -1,0 +1,61 @@
+---
+// src/components/CodeSnippet.astro
+---
+
+<div
+    class="relative w-full max-w-2xl mx-auto rounded-2xl bg-slate-900 border border-slate-700/50 shadow-2xl overflow-hidden glass-panel"
+>
+    <!-- macOS styled window controls -->
+    <div
+        class="flex items-center px-4 py-3 border-b border-slate-800 bg-slate-900/50"
+    >
+        <div class="flex space-x-2">
+            <div class="w-3 h-3 rounded-full bg-red-400"></div>
+            <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
+            <div class="w-3 h-3 rounded-full bg-green-400"></div>
+        </div>
+        <div class="mx-auto text-xs text-slate-500 font-mono">App.tsx</div>
+    </div>
+
+    <!-- Code content -->
+    <div class="p-6 overflow-x-auto text-sm font-mono leading-relaxed">
+        <pre><code class="language-tsx"><span class="text-dev-accent">import</span> <span class="text-slate-300">&#123; useEffect, useRef &#125;</span> <span class="text-dev-accent">from</span> <span class="text-green-300">'react'</span>;
+<span class="text-dev-accent">import</span> <span class="text-slate-300">gsap</span> <span class="text-dev-accent">from</span> <span class="text-green-300">'gsap'</span>;
+
+<span class="text-dev-accent">export function</span> <span class="text-blue-300">DevAgencyApp</span>() &#123;
+  <span class="text-dev-accent">const</span> containerRef = <span class="text-blue-300">useRef</span>(<span class="text-orange-300">null</span>);
+
+  <span class="text-blue-300">useEffect</span>(() =&gt; &#123;
+    <span class="text-slate-500">// High-performance GSAP animations</span>
+    <span class="text-slate-300">gsap</span>.<span class="text-blue-300">to</span>(containerRef.current, &#123;
+      <span class="text-purple-300">opacity</span>: <span class="text-orange-300">1</span>,
+      <span class="text-purple-300">y</span>: <span class="text-orange-300">0</span>,
+      <span class="text-purple-300">duration</span>: <span class="text-orange-300">0.8</span>,
+      <span class="text-purple-300">ease</span>: <span class="text-green-300">"power2.out"</span>
+    &#125;);
+  &#125;, []);
+
+  <span class="text-dev-accent">return</span> (
+    &lt;<span class="text-emerald-300">div</span>
+      <span class="text-purple-300">ref</span>=&#123;containerRef&#125;
+      <span class="text-purple-300">className</span>=<span class="text-green-300">"opacity-0 transform translate-y-10"</span>
+    &gt;
+      &lt;<span class="text-emerald-300">h1</span> <span class="text-purple-300">className</span>=<span class="text-green-300">"text-gradient"</span>&gt;
+        <span class="text-slate-200">Hello, Future.</span>
+      &lt;/<span class="text-emerald-300">h1</span>&gt;
+    &lt;/<span class="text-emerald-300">div</span>&gt;
+  );
+&#125;</code></pre>
+    </div>
+</div>
+
+<style>
+    .glass-panel {
+        background: linear-gradient(
+            145deg,
+            rgba(15, 23, 42, 0.9) 0%,
+            rgba(15, 23, 42, 0.7) 100%
+        );
+        backdrop-filter: blur(16px);
+    }
+</style>

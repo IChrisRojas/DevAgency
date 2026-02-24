@@ -1,0 +1,26 @@
+[
+  {
+    "id": "web-development",
+    "title": "Web Development",
+    "description": "We build scalable, high-performance web applications using modern technologies.",
+    "icon": "Code"
+  },
+  {
+    "id": "ai-solutions",
+    "title": "AI Solutions",
+    "description": "Integrate intelligent AI models to automate and optimize your business processes.",
+    "icon": "BrainCircuit"
+  },
+  {
+    "id": "ui-ux-design",
+    "title": "UI/UX Design",
+    "description": "Crafting intuitive and engaging user experiences tailored to your audience.",
+    "icon": "PenTool"
+  },
+  {
+    "id": "cloud-architecture",
+    "title": "Cloud Architecture",
+    "description": "Designing and deploying robust cloud infrastructures for maximum reliability.",
+    "icon": "Cloud"
+  }
+]

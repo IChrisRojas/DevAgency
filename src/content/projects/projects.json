@@ -1,0 +1,38 @@
+[
+    {
+        "id": "fintech-dashboard",
+        "title": "Fintech Analytics Dashboard",
+        "description": "A comprehensive real-time dashboard for financial data analysis and visualization.",
+        "image": "/images/project-1.jpg",
+        "tags": [
+            "React",
+            "TypeScript",
+            "Tailwind CSS"
+        ],
+        "link": "#"
+    },
+    {
+        "id": "ai-customer-support",
+        "title": "AI Customer Support Agent",
+        "description": "An intelligent chatbot integrated into a seamless customer service portal.",
+        "image": "/images/project-2.jpg",
+        "tags": [
+            "AI",
+            "Astro",
+            "Node.js"
+        ],
+        "link": "#"
+    },
+    {
+        "id": "ecommerce-platform",
+        "title": "Next-Gen E-Commerce Platform",
+        "description": "High-conversion e-commerce storefront with advanced personalization features.",
+        "image": "/images/project-3.jpg",
+        "tags": [
+            "Next.js",
+            "GraphQL",
+            "Stripe"
+        ],
+        "link": "#"
+    }
+]

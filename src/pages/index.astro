@@ -1,0 +1,43 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Hero from "../components/Hero.astro";
+import Services from "../components/Services.astro";
+import WhyChooseUs from "../components/WhyChooseUs.astro";
+import Portfolio from "../components/Portfolio.astro";
+import ContactForm from "../components/ContactForm.tsx";
+import Footer from "../components/Footer.astro";
+---
+
+<Layout title="DevAgency | Premium Software & AI Engineering">
+	<Header />
+
+	<main class="flex-grow pt-20">
+		<Hero />
+		<div
+			class="h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"
+		>
+		</div>
+		<Services />
+		<div
+			class="h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"
+		>
+		</div>
+		<WhyChooseUs />
+		<div
+			class="h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"
+		>
+		</div>
+		<Portfolio />
+		<ContactForm client:visible />
+	</main>
+
+	<Footer />
+</Layout>
+
+<script>
+	// Add Lenis for smooth scrolling identical to premium references
+	// We'll dynamically import lenis if the user added it, otherwise we rely on generic smooth scroll.
+	// Actually, standard CSS scroll-behavior: smooth in tailwind handles most of it gracefully,
+	// but let's ensure intersection observers re-trigger properly if needed.
+</script>
