@@ -1,0 +1,86 @@
+---
+// src/components/Hero.astro
+import CodeSnippet from "./CodeSnippet.astro";
+import { ChevronRight } from "lucide-react";
+---
+
+<section
+    class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden flex flex-col items-center min-h-[90vh]"
+>
+    <!-- Decorative Background Gradients -->
+    <div class="absolute inset-0 z-0 pointer-events-none">
+        <div
+            class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-dev-accent/10 blur-[120px]"
+        >
+        </div>
+        <div
+            class="absolute top-[20%] -right-[10%] w-[40%] h-[40%] rounded-full bg-blue-400/10 blur-[100px]"
+        >
+        </div>
+    </div>
+
+    <div
+        class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full text-center"
+    >
+        <!-- Hero Text Content -->
+        <div
+            class="max-w-3xl mx-auto mb-16 hero-entry"
+            style="opacity: 0; transform: translateY(40px);"
+        >
+            <h1
+                class="text-5xl md:text-7xl font-bold tracking-tight text-white mb-6 leading-tight"
+            >
+                Build with <span
+                    class="text-transparent bg-clip-text bg-gradient-to-r from-dev-accent to-blue-500 hover:to-yellow-400 transition-colors duration-500"
+                    >Conviction</span
+                >
+                <br /> and Clarity.
+            </h1>
+            <p class="mt-6 text-xl text-slate-300 max-w-2xl mx-auto font-light">
+                We architect intelligent software and AI solutions that extract
+                knowledge, automate processes, and take the guesswork out of
+                your digital growth.
+            </p>
+
+            <div class="mt-10 flex flex-col sm:flex-row justify-center gap-4">
+                <a
+                    href="#contact"
+                    class="inline-flex items-center justify-center px-8 py-3.5 border border-transparent text-base font-medium rounded-full text-white bg-dev-accent hover:bg-violet-600 shadow-lg shadow-dev-accent/20 hover:shadow-dev-accent/40 hover:scale-105 transition-all duration-300"
+                >
+                    Start your project
+                    <ChevronRight className="ml-2 w-5 h-5" />
+                </a>
+                <a
+                    href="#portfolio"
+                    class="inline-flex items-center justify-center px-8 py-3.5 border border-slate-600 text-base font-medium rounded-full text-slate-300 bg-transparent hover:bg-slate-800 hover:text-white transition-colors backdrop-blur-sm"
+                >
+                    View our work
+                </a>
+            </div>
+        </div>
+
+        <!-- Code Snippet Visual -->
+        <div
+            class="hero-entry snippet-container"
+            style="opacity: 0; transform: translateY(40px);"
+        >
+            <CodeSnippet />
+        </div>
+    </div>
+</section>
+
+<script>
+    import gsap from "gsap";
+
+    // Initial load animation mimicking dala.craftedbygc.com using GSAP
+    document.addEventListener("DOMContentLoaded", () => {
+        gsap.to(".hero-entry", {
+            opacity: 1,
+            y: 0,
+            duration: 0.8,
+            stagger: 0.2,
+            ease: "power2.out",
+            force3D: true // Ensure hardware acceleration
+        });
+    });
+</script>
