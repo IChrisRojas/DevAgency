@@ -19,10 +19,6 @@ export default defineConfig({
       }
     }
   },
-  // Use compile-time image optimization for static builds
-  build: {
-    assets: '_astro'
-  },
   vite: {
     plugins: [tailwindcss()]
   },
