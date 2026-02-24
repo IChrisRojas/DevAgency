@@ -6,8 +6,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro build && wrangler pages dev dist",
-    "astro": "astro",
-    "deploy": "astro build && wrangler pages deploy dist --project-name=devagency"
+    "astro": "astro"
   },
   "dependencies": {
     "@astrojs/react": "^4.4.2",
@@ -21,7 +20,6 @@
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "tailwindcss": "^4.2.1",
-    "three": "^0.183.1",
-    "wrangler": "^4.0.0"
+    "three": "^0.183.1"
   }
 }
