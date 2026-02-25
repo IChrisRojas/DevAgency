@@ -36,7 +36,7 @@ export default function ContactForm() {
     };
 
     return (
-        <section id="contact" className="py-24 bg-transparent relative overflow-hidden">
+        <section id="contact" className="py-24 bg-gradient-to-b from-transparent to-[#020202] relative overflow-hidden">
             {/* Decorative blurry blobs */}
             <div className="absolute top-0 right-0 -translate-y-12 translate-x-1/3">
                 <div className="w-96 h-96 bg-dev-accent/20 rounded-full blur-[100px]" />
