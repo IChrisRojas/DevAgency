@@ -28,6 +28,7 @@
     import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
     import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
     import { MeshSurfaceSampler } from "three/examples/jsm/math/MeshSurfaceSampler.js";
+
     import gsap from "gsap";
     import ScrollTrigger from "gsap/ScrollTrigger";
 
@@ -48,6 +49,7 @@
   varying vec3 vColor;
   varying float vShapeType;
   varying float vOpacity;
+  varying float vRandomOffset;
   
   float snoise(vec3 v) {
     return sin(v.x * 8.0) * cos(v.y * 8.0) * sin(v.z * 8.0);
@@ -56,18 +58,27 @@
   void main() {
       vColor = customColor;
       vShapeType = shapeType;
+      vRandomOffset = randomOffset;
   
       vec3 mixedPosition = mix(position, position2, uProgress);
-      float noise = snoise(mixedPosition * 1.2 + uTime * 0.12 + randomOffset) * 0.06;
+      // Reducción drástica del ruido para que no modifique tanto la forma
+      float noise = snoise(mixedPosition * 1.5 + uTime * 0.15 + randomOffset) * 0.015;
       vec3 pseudoNormal = normalize(mixedPosition);
       mixedPosition += pseudoNormal * noise;
-  
-      mixedPosition += aDirection * uExplosion * 10.0;
-  
-      // Opacidad variable según profundidad para efecto translúcido
-      float depth = length(mixedPosition);
-      vOpacity = 0.35 + 0.35 * (1.0 - smoothstep(0.0, 3.0, depth));
 
+  
+      mixedPosition += aDirection * uExplosion * 2.5;
+  
+      // Profundidad para opacidad y coloración interior brillante
+      float depth = length(mixedPosition);
+      // Las partículas cerca del centro (depth pequeño) son más brillantes, las del borde más transparentes
+      vOpacity = 0.5 + 0.5 * (1.0 - smoothstep(0.0, 3.5, depth));
+
+      // Añadimos extra brillo interior para el fragment shader
+      vRandomOffset = randomOffset;
+      // Guardamos la profundidad en vShapeType (hackeado) para el color, 
+      // pero en este caso crearemos un varying específico para el brillo
+      
       vec4 mvPosition = modelViewMatrix * vec4(mixedPosition, 1.0);
       
       gl_PointSize = (uSizeFactor * aSize) * (1.0 / -mvPosition.z);
@@ -79,6 +90,7 @@
   varying vec3 vColor;
   varying float vShapeType;
   varying float vOpacity;
+  varying float vRandomOffset;
 
   float sdTriangle(vec2 p, float r) {
       float k = sqrt(3.0);
@@ -95,49 +107,58 @@
   }
 
   void main() {
+      // Rotar polígonos individualmente 
+      float angle = vRandomOffset * 6.2831;
+      float s = sin(angle), c = cos(angle);
       vec2 uv = gl_PointCoord.xy - vec2(0.5);
+      
+      uv = vec2(uv.x * c - uv.y * s, uv.x * s + uv.y * c);
+
       float dist = length(uv);
-      float aa = 0.05; // Antialiasing factor
+      float aa = 0.05;
 
       float alpha = 0.0;
       vec3 colorMod = vec3(1.0);
 
       if (vShapeType < 0.5) {
-          // Triángulo relleno suave
+          // Triángulo relleno (vidrio bombilla, corteza cerebro)
           float d = sdTriangle(uv, 0.28);
           alpha = 1.0 - smoothstep(-aa, 0.02, d);
           colorMod = mix(vec3(1.3), vec3(1.0), smoothstep(-0.2, 0.0, d));
       } else if (vShapeType < 1.5) {
-          // Triángulo outline estilizado
-          float d = sdTriangle(uv, 0.3);
-          float thickness = 0.025;
+          // Triángulo outline (vidrio, surcos cerebro)
+          float d = sdTriangle(uv, 0.32);
+          float thickness = 0.015;
           alpha = 1.0 - smoothstep(0.0, aa, abs(d) - thickness);
       } else if (vShapeType < 2.5) {
-          // Círculo con detalle interno (como en el screenshot)
-          float dCircle = dist - 0.32;
-          float dTri = sdTriangle(uv * 1.6, 0.12);
-          float circleAlpha = 1.0 - smoothstep(-aa, 0.02, dCircle);
-          float triMask = smoothstep(-aa, 0.02, dTri); 
-          alpha = circleAlpha * triMask;
+          // Punto brillante para filamento / núcleo cerebro (glow intenso)
+          float softDist = exp(-dist * 4.0);
+          alpha = smoothstep(0.0, 1.0, softDist);
+          colorMod = vec3(2.5); // Extra brillo
       } else if (vShapeType < 3.5) {
-          // Cuadrado rotado outline
-          float angle = 0.785; // 45 degrees
-          float s = sin(angle), c = cos(angle);
-          vec2 rUv = vec2(uv.x * c - uv.y * s, uv.x * s + uv.y * c);
+          // Cuadrado rotado outline (metal bombilla / base cerebro)
+          float boxAngle = 0.785;
+          float bs = sin(boxAngle), bc = cos(boxAngle);
+          vec2 rUv = vec2(uv.x * bc - uv.y * bs, uv.x * bs + uv.y * bc);
           float d = sdBox(rUv, vec2(0.22));
           float thickness = 0.02;
           alpha = 1.0 - smoothstep(0.0, aa, abs(d) - thickness);
+          colorMod = vec3(1.6); // Más brillante para metal
       } else {
-          // Punto suave premium
+          // Punto circular suave pequeño
           float softDist = exp(-dist * 6.0);
           alpha = smoothstep(0.0, 1.0, softDist);
       }
 
       if (alpha < 0.01) discard;
 
-      vec3 finalColor = vColor * colorMod;
+      float interiorGlow = pow(vOpacity, 2.0) * 2.5;
+      vec3 finalColor = vColor * colorMod * max(1.0, interiorGlow);
+      
       gl_FragColor = vec4(finalColor, alpha * vOpacity);
   }
+
+
   `;
 
     // ========== SHADERS PARTÍCULAS DE FONDO ==========
@@ -257,8 +278,8 @@
             composer.addPass(bloomPass);
         }
 
-        // ========== PARTÍCULAS DEL MODELO (menos = más rendimiento) ==========
-        const particleCount = isMobile ? 8000 : 15000;
+        // ========== PARTÍCULAS DEL MODELO (menor densidad para que se aprecie la forma nítida) ==========
+        const particleCount = isMobile ? 1500 : 4000;
 
         const positions1 = new Float32Array(particleCount * 3);
         const positions2 = new Float32Array(particleCount * 3);
@@ -268,17 +289,14 @@
         const colors = new Float32Array(particleCount * 3);
         const randomOffsets = new Float32Array(particleCount);
 
-        // Paleta de colores multi-tono como en la referencia
+        // Paleta de colores ajustada inspirada en la referencia Dala
         const colorPalette = [
-            new Color(0x8b5cf6), // Púrpura vibrante
-            new Color(0xa855f7), // Púrpura medio
-            new Color(0x6d28d9), // Púrpura oscuro
             new Color(0xfbbf24), // Dorado/Amarillo
             new Color(0xf59e0b), // Ámbar
-            new Color(0xffffff), // Blanco
+            new Color(0x8b5cf6), // Púrpura vibrante
             new Color(0x06b6d4), // Cyan
-            new Color(0xd946ef), // Magenta/Rosa
-            new Color(0x818cf8), // Índigo claro
+            new Color(0xffffff), // Blanco
+            new Color(0x6d28d9), // Púrpura oscuro
         ];
 
         for (let i = 0; i < particleCount; i++) {
@@ -289,26 +307,17 @@
             positions2[i * 3 + 1] = 0;
             positions2[i * 3 + 2] = 0;
 
-            // Mezcla de triángulos, puntos, cuadrados y círculos con detalle
-            const r = Math.random();
-            if (r < 0.3)
-                shapeTypes[i] = 0; // Triángulo relleno
-            else if (r < 0.55)
-                shapeTypes[i] = 1; // Triángulo outline
-            else if (r < 0.75)
-                shapeTypes[i] = 2; // Círculo con detalle
-            else if (r < 0.9)
-                shapeTypes[i] = 3; // Cuadrado rotado
-            else shapeTypes[i] = 4; // Punto circular suave
+            // Shapes y colores se asignarán después, según la parte del modelo
+            shapeTypes[i] = 1; // Por defecto triángulo outline (se sobreescribe en loader)
 
-            // Tamaños variados: algunos grandes, otros pequeños
+            // Tamaños mucho más reducidos... ¡Pero aumentados para que se vean bien!
             const sizeRand = Math.random();
-            if (sizeRand < 0.1) {
-                aSizes[i] = Math.random() * 1.5 + 1.0; // Grandes (~10%)
-            } else if (sizeRand < 0.4) {
-                aSizes[i] = Math.random() * 0.7 + 0.4; // Medianas (~30%)
+            if (sizeRand < 0.05) {
+                aSizes[i] = Math.random() * 2.5 + 1.2; // Grandes (5%)
+            } else if (sizeRand < 0.25) {
+                aSizes[i] = Math.random() * 1.0 + 0.6; // Medianas (20%)
             } else {
-                aSizes[i] = Math.random() * 0.3 + 0.1; // Pequeñas (~60%)
+                aSizes[i] = Math.random() * 0.4 + 0.2; // Pequeñas (75%)
             }
 
             const theta = Math.random() * Math.PI * 2;
@@ -359,58 +368,69 @@
 
         Promise.all([
             new Promise<any>((resolve) =>
-                loader.load("/models/lightbulb.glb", resolve),
+                loader.load("/models/light_bulb.glb", resolve),
             ),
             new Promise<any>((resolve) =>
-                loader.load("/models/brain.glb", resolve),
+                loader.load("/models/Rotten Brain.glb", resolve),
             ),
         ])
             .then(([bulbGLTF, brainGLTF]) => {
-                const getMesh = (gltf: any) => {
-                    let mesh: any = null;
+                // Recoger TODAS las meshes y crear samplers individuales
+                const getSamplers = (gltf: any, targetSize: number) => {
+                    const meshes: any[] = [];
+                    gltf.scene.updateMatrixWorld(true);
                     gltf.scene.traverse((child: any) => {
-                        if (child.isMesh && !mesh) mesh = child;
+                        if (child.isMesh) meshes.push(child);
                     });
-                    return mesh;
-                };
+                    if (meshes.length === 0) return null;
 
-                const bulbMesh = getMesh(bulbGLTF);
-                const brainMesh = getMesh(brainGLTF);
-
-                if (!bulbMesh || !brainMesh) return;
-
-                const normalizeGeometry = (mesh: any, targetSize: number) => {
-                    const geom = mesh.geometry.clone();
-                    mesh.updateMatrixWorld();
-                    geom.applyMatrix4(mesh.matrixWorld);
-
-                    geom.computeBoundingBox();
-                    const box = geom.boundingBox;
-                    const center = new Vector3();
-                    box.getCenter(center);
-
-                    geom.translate(-center.x, -center.y, -center.z);
-
-                    const size = new Vector3();
-                    box.getSize(size);
-                    const maxDim = Math.max(size.x, size.y, size.z);
+                    // Calcular bounding box global para centrar y normalizar
+                    let minX = Infinity,
+                        minY = Infinity,
+                        minZ = Infinity;
+                    let maxX = -Infinity,
+                        maxY = -Infinity,
+                        maxZ = -Infinity;
+                    for (const m of meshes) {
+                        const geom = m.geometry.clone();
+                        geom.applyMatrix4(m.matrixWorld);
+                        const posArr = geom.getAttribute("position").array;
+                        for (let j = 0; j < posArr.length; j += 3) {
+                            minX = Math.min(minX, posArr[j]);
+                            minY = Math.min(minY, posArr[j + 1]);
+                            minZ = Math.min(minZ, posArr[j + 2]);
+                            maxX = Math.max(maxX, posArr[j]);
+                            maxY = Math.max(maxY, posArr[j + 1]);
+                            maxZ = Math.max(maxZ, posArr[j + 2]);
+                        }
+                    }
+                    const cx = (minX + maxX) / 2,
+                        cy = (minY + maxY) / 2,
+                        cz = (minZ + maxZ) / 2;
+                    const maxDim = Math.max(
+                        maxX - minX,
+                        maxY - minY,
+                        maxZ - minZ,
+                    );
                     const scale = targetSize / maxDim;
-                    geom.scale(scale, scale, scale);
 
-                    return geom;
+                    // Crear samplers normalizados para cada mesh
+                    const samplers: any[] = [];
+                    for (const m of meshes) {
+                        const geom = m.geometry.clone();
+                        geom.applyMatrix4(m.matrixWorld);
+                        geom.translate(-cx, -cy, -cz);
+                        geom.scale(scale, scale, scale);
+                        const dummy = new Mesh(geom);
+                        samplers.push(new MeshSurfaceSampler(dummy).build());
+                    }
+                    return samplers;
                 };
 
-                const bulbGeom = normalizeGeometry(bulbMesh, 4.0);
-                const brainGeom = normalizeGeometry(brainMesh, 4.0);
+                const bulbSamplers = getSamplers(bulbGLTF, 4.0);
+                const brainSamplers = getSamplers(brainGLTF, 4.0);
 
-                const dummyMeshBulb = new Mesh(bulbGeom);
-                const dummyMeshBrain = new Mesh(brainGeom);
-                const bulbSampler = new MeshSurfaceSampler(
-                    dummyMeshBulb,
-                ).build();
-                const brainSampler = new MeshSurfaceSampler(
-                    dummyMeshBrain,
-                ).build();
+                if (!bulbSamplers || !brainSamplers) return;
 
                 const _position = new Vector3();
                 const _normal = new Vector3();
@@ -419,14 +439,98 @@
                     .array as Float32Array;
                 const pos2Array = particlesGeometry.attributes.position2
                     .array as Float32Array;
+                const shapeArr = particlesGeometry.attributes.shapeType
+                    .array as Float32Array;
+                const colorArr = particlesGeometry.attributes.customColor
+                    .array as Float32Array;
+                const sizeArr = particlesGeometry.attributes.aSize
+                    .array as Float32Array;
+
+                // Colores por tipo de parte
+                const metalColors = [
+                    new Color(0xc0c0c0),
+                    new Color(0x9ca3af),
+                    new Color(0xe5e7eb),
+                ];
+                const filamentColors = [
+                    new Color(0xfbbf24),
+                    new Color(0xf59e0b),
+                    new Color(0xffffff),
+                ];
+                const glassColors = [
+                    new Color(0x8b5cf6),
+                    new Color(0x06b6d4),
+                    new Color(0xa855f7),
+                    new Color(0xffffff),
+                ];
+                const brainMainColors = [
+                    new Color(0x8b5cf6),
+                    new Color(0xd946ef),
+                    new Color(0x6d28d9),
+                    new Color(0xffffff),
+                ];
+                const brainDetailColors = [
+                    new Color(0xfbbf24),
+                    new Color(0x06b6d4),
+                    new Color(0xf59e0b),
+                ];
 
                 for (let i = 0; i < particleCount; i++) {
-                    bulbSampler.sample(_position, _normal);
+                    // ===== BOMBILLA (position1) =====
+                    const bulbMeshIdx = i % bulbSamplers.length;
+                    const bulbS = bulbSamplers[bulbMeshIdx];
+                    bulbS.sample(_position, _normal);
                     pos1Array[i * 3] = _position.x;
                     pos1Array[i * 3 + 1] = _position.y;
                     pos1Array[i * 3 + 2] = _position.z;
 
-                    brainSampler.sample(_position, _normal);
+                    // Asignar forma y color según la parte del modelo
+                    // Heurística: parte baja = metal (y <-0.5), centro = filamento (pequeño radio), resto = vidrio
+                    const py = _position.y;
+                    const radius = Math.sqrt(
+                        _position.x * _position.x + _position.z * _position.z,
+                    );
+
+                    if (py < -0.8) {
+                        // Parte metálica (base/rosca) → cuadrados rotados brillantes
+                        shapeArr[i] = 3;
+                        const mc =
+                            metalColors[
+                                Math.floor(Math.random() * metalColors.length)
+                            ];
+                        colorArr[i * 3] = mc.r;
+                        colorArr[i * 3 + 1] = mc.g;
+                        colorArr[i * 3 + 2] = mc.b;
+                        sizeArr[i] = Math.random() * 0.6 + 0.3;
+                    } else if (radius < 0.6 && py > -0.3 && py < 1.2) {
+                        // Filamento interior → puntos brillantes
+                        shapeArr[i] = 2;
+                        const fc =
+                            filamentColors[
+                                Math.floor(
+                                    Math.random() * filamentColors.length,
+                                )
+                            ];
+                        colorArr[i * 3] = fc.r;
+                        colorArr[i * 3 + 1] = fc.g;
+                        colorArr[i * 3 + 2] = fc.b;
+                        sizeArr[i] = Math.random() * 1.5 + 0.5;
+                    } else {
+                        // Vidrio → triángulos outline
+                        shapeArr[i] = Math.random() < 0.8 ? 1 : 0;
+                        const gc =
+                            glassColors[
+                                Math.floor(Math.random() * glassColors.length)
+                            ];
+                        colorArr[i * 3] = gc.r;
+                        colorArr[i * 3 + 1] = gc.g;
+                        colorArr[i * 3 + 2] = gc.b;
+                    }
+
+                    // ===== CEREBRO (position2) =====
+                    const brainMeshIdx = i % brainSamplers.length;
+                    const brainS = brainSamplers[brainMeshIdx];
+                    brainS.sample(_position, _normal);
                     pos2Array[i * 3] = _position.x;
                     pos2Array[i * 3 + 1] = _position.y;
                     pos2Array[i * 3 + 2] = _position.z;
@@ -434,9 +538,9 @@
 
                 particlesGeometry.attributes.position.needsUpdate = true;
                 particlesGeometry.attributes.position2.needsUpdate = true;
-
-                particlesGeometry.computeBoundingSphere();
-                particlesGeometry.computeBoundingBox();
+                particlesGeometry.attributes.shapeType.needsUpdate = true;
+                particlesGeometry.attributes.customColor.needsUpdate = true;
+                particlesGeometry.attributes.aSize.needsUpdate = true;
 
                 gsap.to(particleSystem.scale, {
                     x: 1,
@@ -544,7 +648,7 @@
         // ========== SISTEMA DE PARTÍCULAS DE MODELOS ==========
         if (vertexShader && fragmentShader) {
             const getParticleSizeFactor = () =>
-                window.innerWidth < 1024 ? 15.0 : 22.0;
+                window.innerWidth < 1024 ? 30.0 : 45.0; // Multiplicador general de tamaño
 
             const shaderMaterial = new ShaderMaterial({
                 vertexShader: vertexShader,
@@ -573,7 +677,7 @@
             };
             setInitialPosition();
 
-            particleSystem.rotation.set(0.1, -0.2, 0);
+            particleSystem.rotation.set(0.1, -0.15, -0.15); // Inclinada a la derecha
 
             scene.add(particleSystem);
 
@@ -603,7 +707,7 @@
             morphTl
                 .to(
                     shaderMaterial.uniforms.uExplosion,
-                    { value: 15.0, ease: "power2.in" },
+                    { value: 1.5, ease: "power2.in" },
                     0,
                 )
                 .to(
