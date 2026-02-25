@@ -45,10 +45,10 @@ const projects = await getCollection("projects");
                         class="project-card block group cursor-pointer"
                         style="opacity: 0; transform: translateY(40px);"
                     >
-                        <div class="relative overflow-hidden rounded-2xl bg-slate-900/50 backdrop-blur-sm aspect-[4/3] mb-6 border border-slate-700">
+                        <div class="relative overflow-hidden rounded-2xl bg-slate-900/50 backdrop-blur-sm aspect-[4/3] mb-6 border border-white/10">
                             {/* Fallback image placeholder since we don't have actual images in the template */}
                             <div class="absolute inset-0 bg-slate-800 flex items-center justify-center p-8 group-hover:scale-105 transition-transform duration-700 ease-out">
-                                <div class="w-full h-full bg-slate-900 rounded-xl shadow-sm border border-slate-700 p-4 flex flex-col justify-between opacity-80 group-hover:opacity-100 transition-opacity">
+                                <div class="w-full h-full bg-slate-900 rounded-xl shadow-sm border border-white/10 p-4 flex flex-col justify-between opacity-80 group-hover:opacity-100 transition-opacity">
                                     <div class="flex gap-2">
                                         <div class="w-2.5 h-2.5 rounded-full bg-slate-700" />
                                         <div class="w-2.5 h-2.5 rounded-full bg-slate-700" />
@@ -62,7 +62,7 @@ const projects = await getCollection("projects");
 
                         <div class="flex flex-wrap gap-2 mb-3">
                             {project.data.tags.map((tag) => (
-                                <span class="inline-flex items-center rounded-full bg-slate-800 px-2.5 py-0.5 text-xs font-medium text-slate-300 border border-slate-700">
+                                <span class="inline-flex items-center rounded-full bg-slate-800 px-2.5 py-0.5 text-xs font-medium text-slate-300 border border-white/10">
                                     {tag}
                                 </span>
                             ))}
