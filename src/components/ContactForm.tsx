@@ -57,7 +57,7 @@ export default function ContactForm() {
                             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
                         }`}
                     >
-                        <div className="text-center lg:text-left mb-10">
+                        <div className="text-left mb-10">
                             <h2 className="text-3xl font-bold text-white">Construyamos algo brillante.</h2>
                             <p className="mt-3 text-slate-300">Discute tu proyecto con nuestro equipo de ingeniería.</p>
                         </div>
