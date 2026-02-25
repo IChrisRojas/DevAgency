@@ -125,14 +125,14 @@
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
     if (!isMobile) {
-        const bloomPass = new UnrealBloomPass(new Vector2(256, 256), 2.5, 0.5, 0.85); // Aumentado strength a 2.5 y threshold a 0.5
-        bloomPass.threshold = 0.1; // Brillo más fácil de activar
-        bloomPass.strength = 2.5; // Resplandor potente holográfico
-        bloomPass.radius = 1.2;
+        const bloomPass = new UnrealBloomPass(new Vector2(256, 256), 1.5, 0.4, 0.85);
+        bloomPass.threshold = 0.2; 
+        bloomPass.strength = 1.5; 
+        bloomPass.radius = 0.8;
         composer.addPass(bloomPass);
     }
 
-    const particleCount = 10000; // Reducido a 10000
+    const particleCount = 15000; 
 
     const positions1 = new Float32Array(particleCount * 3);
     const positions2 = new Float32Array(particleCount * 3);
@@ -157,7 +157,7 @@
         positions2[i * 3] = px; positions2[i * 3 + 1] = py; positions2[i * 3 + 2] = pz;
         
         shapeTypes[i] = Math.floor(Math.random() * 3);
-        aSizes[i] = Math.random() * 10.0 + 8.0; // Triángulos más grandes para ver el hueco
+        aSizes[i] = Math.random() * 5.0 + 3.0; // Triángulos más pequeños y definidos
         
         const theta = Math.random() * Math.PI * 2;
         const phi = Math.acos((Math.random() * 2) - 1);
@@ -181,103 +181,97 @@
     const loader = new GLTFLoader();
     
     Promise.all([
-        new Promise(resolve => loader.load('/models/lightbulb.glb', resolve)),
-        new Promise(resolve => loader.load('/models/brain.glb', resolve))
+        new Promise<any>(resolve => loader.load('/models/lightbulb.glb', resolve)),
+        new Promise<any>(resolve => loader.load('/models/brain.glb', resolve))
     ]).then(([bulbGLTF, brainGLTF]) => {
         
-        let bulbMesh, brainMesh;
-        
-        // Encontrar los Meshes dentro de la escena
-        bulbGLTF.scene.traverse((child) => {
-            if (child.isMesh) bulbMesh = child;
-        });
-        brainGLTF.scene.traverse((child) => {
-            if (child.isMesh) brainMesh = child;
-        });
+        const getMesh = (gltf: any) => {
+            let mesh: any = null;
+            gltf.scene.traverse((child: any) => {
+                if (child.isMesh && !mesh) mesh = child;
+            });
+            return mesh;
+        };
 
-        if (!bulbMesh || !brainMesh) {
-            console.error("No meshes found in GLB files");
-            return;
-        }
+        const bulbMesh = getMesh(bulbGLTF);
+        const brainMesh = getMesh(brainGLTF);
 
-        // Crear samplers
-        const bulbSampler = new MeshSurfaceSampler(bulbMesh).build();
-        const brainSampler = new MeshSurfaceSampler(brainMesh).build();
+        if (!bulbMesh || !brainMesh) return;
 
-        // Calcular Bounding Box del cerebro para los colores espaciales
-        brainMesh.geometry.computeBoundingBox();
-        const brainBox = brainMesh.geometry.boundingBox;
-        const center = new Vector3();
-        brainBox.getCenter(center);
-        const maxDist = Math.max(
-            Math.abs(brainBox.max.x - center.x),
-            Math.abs(brainBox.max.y - center.y),
-            Math.abs(brainBox.max.z - center.z)
-        );
+        // CRITICAL: Normalizar geometrías para que no colapsen en el centro
+        const normalizeGeometry = (mesh: any, targetSize: number) => {
+            const geom = mesh.geometry.clone();
+            mesh.updateMatrixWorld(); // Asegurar matrices actualizadas
+            geom.applyMatrix4(mesh.matrixWorld); // Congelar posición y escala del GLB
+            
+            geom.computeBoundingBox();
+            const box = geom.boundingBox;
+            const center = new Vector3();
+            box.getCenter(center);
+            
+            // Centrar
+            geom.translate(-center.x, -center.y, -center.z);
+            
+            // Escalar a tamaño estándar
+            const size = new Vector3();
+            box.getSize(size);
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const scale = targetSize / maxDim;
+            geom.scale(scale, scale, scale);
+            
+            return geom;
+        };
+
+        const bulbGeom = normalizeGeometry(bulbMesh, 4.0);
+        const brainGeom = normalizeGeometry(brainMesh, 4.0);
+
+        // Crear samplers con las geometrías ya normalizadas
+        const bulbSampler = new MeshSurfaceSampler(new Points(bulbGeom)).build();
+        const brainSampler = new MeshSurfaceSampler(new Points(brainGeom)).build();
 
         const _position = new Vector3();
-        const _normal = new Vector3(); // Required by sampler, but we may not use it
+        const _normal = new Vector3();
         
-        // Colores: Amarillo neón/naranja (centro) a Púrpura/Azul (bordes)
-        const colorCenter = new Color(0xffaa00); // Naranja cálido/Amarillo
-        const colorEdge = new Color(0x6b21a8); // Púrpura vibrante
-        const colorHighlight = new Color(0x00d8ff); // Celeste para detalles
-        
+        const colorCenter = new Color(0xffcc00); // Amarillo cálido
+        const colorEdge = new Color(0x8b5cf6);   // Púrpura
+        const colorHighlight = new Color(0xffffff);
         const tempColor = new Color();
 
-        const newPos1 = new Float32Array(particleCount * 3);
-        const newPos2 = new Float32Array(particleCount * 3);
-        const newColors = new Float32Array(particleCount * 3);
+        // Obtener los arreglos de atributos actuales
+        const pos1Array = particlesGeometry.attributes.position.array as Float32Array;
+        const pos2Array = particlesGeometry.attributes.position2.array as Float32Array;
+        const colorArray = particlesGeometry.attributes.customColor.array as Float32Array;
 
         for (let i = 0; i < particleCount; i++) {
-            // Muestrear Bombilla
+            // Muestreo Bombilla
             bulbSampler.sample(_position, _normal);
-            // Escalar y posicionar la bombilla si es necesario. (Ej: escalar x2)
-            newPos1[i * 3] = _position.x * 2.5;
-            newPos1[i * 3 + 1] = (_position.y * 2.5) - 1.0; // Bajarla un poco
-            newPos1[i * 3 + 2] = _position.z * 2.5;
+            pos1Array[i * 3] = _position.x;
+            pos1Array[i * 3 + 1] = _position.y;
+            pos1Array[i * 3 + 2] = _position.z;
 
-            // Muestrear Cerebro
+            // Muestreo Cerebro
             brainSampler.sample(_position, _normal);
-            // Escalar el cerebro
-            const brainScale = 2.0;
-            newPos2[i * 3] = _position.x * brainScale;
-            newPos2[i * 3 + 1] = _position.y * brainScale;
-            newPos2[i * 3 + 2] = _position.z * brainScale;
+            pos2Array[i * 3] = _position.x;
+            pos2Array[i * 3 + 1] = _position.y;
+            pos2Array[i * 3 + 2] = _position.z;
 
-            // Calcular Color espacial basado en la distancia al centro del cerebro
-            const distToCenter = _position.distanceTo(center);
-            // Normalizar distancia de 0.0 (centro) a 1.0 (borde)
-            let normalizedDist = Math.min(distToCenter / maxDist, 1.0);
+            // Gradiente espacial basado en distancia radial
+            const dist = Math.sqrt(_position.x * _position.x + _position.z * _position.z);
+            tempColor.copy(colorCenter).lerp(colorEdge, Math.min(dist / 2.0, 1.0));
             
-            // Mezclar colores: Centro -> Borde
-            tempColor.copy(colorCenter).lerp(colorEdge, normalizedDist);
-            
-            // Añadir un poco de aleatoriedad (highlight)
-            if (Math.random() > 0.85) {
-                tempColor.lerp(colorHighlight, 0.7);
-            }
+            if (Math.random() > 0.9) tempColor.lerp(colorHighlight, 0.5);
 
-            newColors[i * 3] = tempColor.r;
-            newColors[i * 3 + 1] = tempColor.g;
-            newColors[i * 3 + 2] = tempColor.b;
+            colorArray[i * 3] = tempColor.r;
+            colorArray[i * 3 + 1] = tempColor.g;
+            colorArray[i * 3 + 2] = tempColor.b;
         }
 
-        // Actualizar la geometría
-        particlesGeometry.setAttribute('position', new BufferAttribute(newPos1, 3));
-        particlesGeometry.setAttribute('position2', new BufferAttribute(newPos2, 3));
-        particlesGeometry.setAttribute('customColor', new BufferAttribute(newColors, 3));
-        
+        // Indicar a Three.js que los buffers han cambiado
         particlesGeometry.attributes.position.needsUpdate = true;
         particlesGeometry.attributes.position2.needsUpdate = true;
         particlesGeometry.attributes.customColor.needsUpdate = true;
         
-        // Disparar una animación inicial suave para que los puntos viajen a su lugar
-        // Asumiendo que uProgress empieza en 0, si quisieramos que viajaran
-        // podemos animar el progress de 1 a 0 u otro truco, pero aquí simplemente 
-        // dejamos que uProgress siga el Scroll normal.
-        
-    }).catch(e => console.error("Error loading GLB models:", e));
+    }).catch(e => console.error("Error loading GLB:", e));
 
     const vShaderEl = document.getElementById('vertexShader');
     const fShaderEl = document.getElementById('fragmentShader');
