@@ -1,26 +1,26 @@
 [
   {
     "id": "web-development",
-    "title": "Web Development",
-    "description": "We build scalable, high-performance web applications using modern technologies.",
+    "title": "Desarrollo Web",
+    "description": "Creamos sitios web y plataformas a medida, optimizadas para el rendimiento y la conversión.",
+    "icon": "Monitor"
+  },
+  {
+    "id": "app-development",
+    "title": "Desarrollo de Apps Móviles",
+    "description": "Diseñamos y desarrollamos aplicaciones móviles intuitivas para iOS y Android.",
+    "icon": "Smartphone"
+  },
+  {
+    "id": "custom-software",
+    "title": "Software a Medida",
+    "description": "Construimos soluciones informáticas robustas y escalables adaptadas a las necesidades específicas de tu negocio.",
     "icon": "Code"
   },
   {
-    "id": "ai-solutions",
-    "title": "AI Solutions",
-    "description": "Integrate intelligent AI models to automate and optimize your business processes.",
-    "icon": "BrainCircuit"
-  },
-  {
-    "id": "ui-ux-design",
-    "title": "UI/UX Design",
-    "description": "Crafting intuitive and engaging user experiences tailored to your audience.",
-    "icon": "PenTool"
-  },
-  {
-    "id": "cloud-architecture",
-    "title": "Cloud Architecture",
-    "description": "Designing and deploying robust cloud infrastructures for maximum reliability.",
-    "icon": "Cloud"
+    "id": "tech-consulting",
+    "title": "Consultoría Tecnológica",
+    "description": "Te guiamos en la transformación digital de tu empresa para maximizar la eficiencia y el crecimiento.",
+    "icon": "Lightbulb"
   }
 ]

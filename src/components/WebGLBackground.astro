@@ -6,14 +6,17 @@
 
 <script id="vertexShader" type="x-shader/x-vertex">
   uniform float uTime;
-  uniform float uProgress; // 0.0 = Cerebro, 1.0 = Bombilla
-  uniform float uExplosion; // Controla la dispersión en la sección 2
+  uniform float uProgress;
+  uniform float uExplosion;
   
-  attribute vec3 position2; // Posición de la segunda geometría
+  attribute vec3 position2;
   attribute vec3 customColor;
   attribute float randomOffset;
+  attribute float shapeType;
+  attribute float aSize;
   
   varying vec3 vColor;
+  varying float vShapeType;
   
   // Función ruido simplificada
   vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
@@ -21,52 +24,61 @@
   vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
   vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
   float snoise(vec3 v) {
-    // Ruido simple
     return sin(v.x*10.) * cos(v.y*10.) * sin(v.z*10.);
   }
   
   void main() {
       vColor = customColor;
+      vShapeType = shapeType;
   
-      // 1. Morphing entre Geometría 1 (position) y Geometría 2 (position2)
       vec3 mixedPosition = mix(position, position2, uProgress);
-  
-      // 2. Ruido Perlin para movimiento constante (flotación)
       float noise = snoise(mixedPosition * 2.0 + uTime * 0.5 + randomOffset) * 0.1;
-      // Aproximación pseudo-normal para partículas sin caras
       vec3 pseudoNormal = normalize(mixedPosition);
       mixedPosition += pseudoNormal * noise;
   
-      // 3. Efecto Explosión (empuja hacia afuera desde el centro)
       vec3 direction = normalize(mixedPosition);
       mixedPosition += direction * uExplosion * randomOffset * 5.0;
   
       vec4 mvPosition = modelViewMatrix * vec4(mixedPosition, 1.0);
       
-      // Tamaño dinámico por perspectiva y ruido
-      gl_PointSize = (8.0 + noise * 10.0) * (1.0 / -mvPosition.z);
+      gl_PointSize = (15.0 * aSize + noise * 15.0) * (1.0 / -mvPosition.z);
       gl_Position = projectionMatrix * mvPosition;
   }
 </script>
 
 <script id="fragmentShader" type="x-shader/x-fragment">
   varying vec3 vColor;
+  varying float vShapeType;
   
   void main() {
-      // Convierte el punto en un círculo suave
       vec2 xy = gl_PointCoord.xy - vec2(0.5);
       float ll = length(xy);
-      if(ll > 0.5) discard;
+      float opacity = 1.0;
       
-      // Borde suave para mejor efecto Bloom
-      float opacity = smoothstep(0.5, 0.1, ll);
+      int shape = int(mod(vShapeType, 3.0));
+      
+      if (shape == 0) {
+          // Círculo
+          if (ll > 0.5) discard;
+          opacity = smoothstep(0.5, 0.1, ll);
+      } else if (shape == 1) {
+          // Triángulo (aproximación SDF)
+          float d = max(abs(xy.x) * 0.866025 + xy.y * 0.5, -xy.y);
+          if (d > 0.25) discard;
+          opacity = smoothstep(0.25, 0.15, d);
+      } else {
+          // Rombo / Diamante
+          float d = abs(xy.x) + abs(xy.y);
+          if (d > 0.5) discard;
+          opacity = smoothstep(0.5, 0.2, d);
+      }
       
       gl_FragColor = vec4(vColor, opacity);
   }
 </script>
 
 <script>
-  import { Scene, FogExp2, PerspectiveCamera, WebGLRenderer, Vector2, SphereGeometry, ConeGeometry, BufferGeometry, BufferAttribute, Color, ShaderMaterial, AdditiveBlending, Points, Clock } from 'three';
+  import { Scene, FogExp2, PerspectiveCamera, WebGLRenderer, Vector2, BufferGeometry, BufferAttribute, Color, ShaderMaterial, AdditiveBlending, Points, Clock } from 'three';
   import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
   import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
   import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
@@ -83,43 +95,62 @@
     const camera = new PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.z = 5;
 
-    const renderer = new WebGLRenderer({ canvas, alpha: false, antialias: false }); // Disabled antialias for performance, bloom softens it anyway
+    const renderer = new WebGLRenderer({ canvas, alpha: false, antialias: false });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1)); // Cap out pixel ratio to 1 for mobile + integrate graphics perf
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1));
 
     const renderScene = new RenderPass(scene, camera);
     const composer = new EffectComposer(renderer);
     composer.addPass(renderScene);
 
-    // Conditional Bloom based on device performance (disable on mobile)
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
     if (!isMobile) {
-        const bloomPass = new UnrealBloomPass(new Vector2(256, 256), 1.5, 0.4, 0.85); // Dramatically reduced bloom resolution
+        const bloomPass = new UnrealBloomPass(new Vector2(256, 256), 1.5, 0.4, 0.85);
         bloomPass.threshold = 0.2;
         bloomPass.strength = 1.2;
         bloomPass.radius = 0.5;
         composer.addPass(bloomPass);
     }
 
-    // Malla Esférica base ("Cerebro" placeholder)
-    const geometry1 = new SphereGeometry(1.5, 32, 32);
-    // Malla Cónica destino ("Bombilla" placeholder)
-    const geometry2 = new ConeGeometry(1.5, 3, 32, 32);
-    
-    // Equalize vertex counts by expanding the smaller one if necessary
-    let pos1Array = Array.from(geometry1.attributes.position.array);
-    let pos2Array = Array.from(geometry2.attributes.position.array);
+    const particleCount = 8000;
 
-    const maxVerticesCount = Math.max(pos1Array.length, pos2Array.length);
+    const positions1 = new Float32Array(particleCount * 3);
+    const positions2 = new Float32Array(particleCount * 3);
+    const shapeTypes = new Float32Array(particleCount);
+    const aSizes = new Float32Array(particleCount);
     
-    // Pad arrays so they match exactly in length for the Shader
-    while(pos1Array.length < maxVerticesCount) pos1Array.push(pos1Array[pos1Array.length - 3], pos1Array[pos1Array.length - 2], pos1Array[pos1Array.length - 1]);
-    while(pos2Array.length < maxVerticesCount) pos2Array.push(pos2Array[pos2Array.length - 3], pos2Array[pos2Array.length - 2], pos2Array[pos2Array.length - 1]);
+    function randomInBox(w: number, h: number, d: number, offsetX = 0, offsetY = 0, offsetZ = 0) {
+        return [
+            (Math.random() - 0.5) * w + offsetX,
+            (Math.random() - 0.5) * h + offsetY,
+            (Math.random() - 0.5) * d + offsetZ
+        ];
+    }
 
-    const positions1 = new Float32Array(pos1Array);
-    const positions2 = new Float32Array(pos2Array);
-    const particleCount = maxVerticesCount / 3;
+    for (let i = 0; i < particleCount; i++) {
+        let px, py, pz;
+        if (Math.random() > 0.3) {
+            // Monitor screen: más profundo para la vista diagonal
+            [px, py, pz] = randomInBox(3.0, 2.0, 0.4, 0, 0.5, 0);
+        } else {
+            // Keyboard base: más grueso y con offset frontal para notarse
+            [px, py, pz] = randomInBox(3.0, 0.2, 1.8, 0, -0.6, 0.7);
+        }
+        
+        positions1[i * 3] = px;
+        positions1[i * 3 + 1] = py;
+        positions1[i * 3 + 2] = pz;
+
+        // Smartphone: proporciones ajustadas
+        let [ax, ay, az] = randomInBox(1.5, 2.8, 0.3);
+        positions2[i * 3] = ax;
+        positions2[i * 3 + 1] = ay;
+        positions2[i * 3 + 2] = az;
+
+        shapeTypes[i] = Math.floor(Math.random() * 3);
+        aSizes[i] = Math.random() * 1.5 + 0.5; // Variación de tamaño de 0.5x a 2.0x
+    }
 
     const colors = new Float32Array(particleCount * 3);
     const randomOffsets = new Float32Array(particleCount);
@@ -143,6 +174,8 @@
     particlesGeometry.setAttribute('position2', new BufferAttribute(positions2, 3));
     particlesGeometry.setAttribute('customColor', new BufferAttribute(colors, 3));
     particlesGeometry.setAttribute('randomOffset', new BufferAttribute(randomOffsets, 1));
+    particlesGeometry.setAttribute('shapeType', new BufferAttribute(shapeTypes, 1));
+    particlesGeometry.setAttribute('aSize', new BufferAttribute(aSizes, 1));
 
     const vShaderEl = document.getElementById('vertexShader');
     const fShaderEl = document.getElementById('fragmentShader');
@@ -162,6 +195,19 @@
       });
 
       const particleSystem = new Points(particlesGeometry, shaderMaterial);
+      
+      const setInitialPosition = () => {
+          if (window.innerWidth < 768) {
+              particleSystem.position.set(0, -1, 0);
+          } else {
+              particleSystem.position.set(2.5, 0, 0); // Mover a la derecha
+          }
+      };
+      setInitialPosition();
+      
+      // Inclinación inicial isométrica/diagonal
+      particleSystem.rotation.set(0.2, -Math.PI / 6, 0);
+      
       scene.add(particleSystem);
 
       // Scroll Animations
@@ -174,12 +220,12 @@
           }
       });
 
-      tl.to(particleSystem.rotation, { y: Math.PI, duration: 2 }, 0)
+      tl.to(particleSystem.rotation, { y: "+=" + Math.PI, duration: 2 }, 0)
         .to(shaderMaterial.uniforms.uExplosion, { value: 1.5, duration: 1, ease: "power2.inOut" }, 1)
         .to(camera.position, { z: 2, duration: 1.5, ease: "power1.inOut" }, 1)
         .to(shaderMaterial.uniforms.uExplosion, { value: 0.0, duration: 1, ease: "power2.in" }, 2)
         .to(shaderMaterial.uniforms.uProgress, { value: 1.0, duration: 1.5, ease: "power3.inOut" }, 2)
-        .to(particleSystem.rotation, { y: Math.PI * 2, duration: 2 }, 2);
+        .to(particleSystem.rotation, { y: "+=" + Math.PI, duration: 2 }, 2);
 
       const clock = new Clock();
       function animate() {
@@ -198,6 +244,7 @@
               camera.updateProjectionMatrix();
               renderer.setSize(window.innerWidth, window.innerHeight);
               composer.setSize(window.innerWidth, window.innerHeight);
+              setInitialPosition();
           }, 250);
       });
     }

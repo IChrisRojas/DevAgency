@@ -53,42 +53,42 @@ export default function ContactForm() {
                     }`}
                 >
                     <div className="text-center mb-10">
-                        <h2 className="text-3xl font-bold text-white">Let's build something brilliant.</h2>
-                        <p className="mt-3 text-slate-300">Discuss your project with our engineering team.</p>
+                        <h2 className="text-3xl font-bold text-white">Construyamos algo brillante.</h2>
+                        <p className="mt-3 text-slate-300">Discute tu proyecto con nuestro equipo de ingeniería.</p>
                     </div>
 
                     <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label htmlFor="name" className="block text-sm font-medium text-slate-300 mb-1">Name</label>
+                                <label htmlFor="name" className="block text-sm font-medium text-slate-300 mb-1">Nombre</label>
                                 <input
                                     type="text"
                                     id="name"
                                     required
                                     className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-800 text-white placeholder:text-slate-500 focus:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-dev-accent/50 focus:border-dev-accent transition-colors"
-                                    placeholder="John Doe"
+                                    placeholder="Juan Pérez"
                                 />
                             </div>
                             <div>
-                                <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-1">Email</label>
+                                <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-1">Correo Electrónico</label>
                                 <input
                                     type="email"
                                     id="email"
                                     required
                                     className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-800 text-white placeholder:text-slate-500 focus:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-dev-accent/50 focus:border-dev-accent transition-colors"
-                                    placeholder="john@example.com"
+                                    placeholder="juan@ejemplo.com"
                                 />
                             </div>
                         </div>
 
                         <div>
-                            <label htmlFor="message" className="block text-sm font-medium text-slate-300 mb-1">Project Details</label>
+                            <label htmlFor="message" className="block text-sm font-medium text-slate-300 mb-1">Detalles del Proyecto</label>
                             <textarea
                                 id="message"
                                 rows={4}
                                 required
                                 className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-800 text-white placeholder:text-slate-500 focus:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-dev-accent/50 focus:border-dev-accent transition-colors resize-none"
-                                placeholder="Tell us about your goals..."
+                                placeholder="Cuéntanos sobre tus objetivos..."
                             />
                         </div>
 
@@ -100,20 +100,20 @@ export default function ContactForm() {
                             <div className="relative w-full h-full flex items-center justify-center">
                                 {formState === 'idle' && (
                                     <div className="flex items-center animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                        Send Message
+                                        Enviar Mensaje
                                         <Send className="ml-2 w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                                     </div>
                                 )}
                                 {formState === 'submitting' && (
                                     <div className="flex items-center animate-in fade-in slide-in-from-bottom-2 duration-300">
                                         <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                                        Sending...
+                                        Enviando...
                                     </div>
                                 )}
                                 {formState === 'success' && (
                                     <div className="flex items-center text-green-300 animate-in fade-in slide-in-from-bottom-2 duration-300">
                                         <CheckCircle2 className="w-5 h-5 mr-2" />
-                                        Message Sent
+                                        Mensaje Enviado
                                     </div>
                                 )}
                             </div>
