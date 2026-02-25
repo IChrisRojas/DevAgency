@@ -53,7 +53,7 @@ export default function ContactForm() {
                     {/* Right side: Contact Form */}
                     <div
                         ref={sectionRef}
-                        className={`bg-slate-900/50 backdrop-blur-md rounded-3xl p-8 md:p-12 shadow-2xl border border-slate-700 transition-all duration-1000 transform ${
+                        className={`bg-slate-900/50 backdrop-blur-md rounded-3xl p-8 md:p-12 shadow-2xl border border-white/10 transition-all duration-1000 transform ${
                             isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
                         }`}
                     >
@@ -70,7 +70,7 @@ export default function ContactForm() {
                                         type="text"
                                         id="name"
                                         required
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-800 text-white placeholder:text-slate-500 focus:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-dev-accent/50 focus:border-dev-accent transition-colors"
+                                        className="w-full px-4 py-3 rounded-xl border border-white/10 bg-slate-800 text-white placeholder:text-slate-500 focus:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-dev-accent/50 focus:border-dev-accent transition-colors"
                                         placeholder="Juan Pérez"
                                     />
                                 </div>
@@ -80,7 +80,7 @@ export default function ContactForm() {
                                         type="email"
                                         id="email"
                                         required
-                                        className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-800 text-white placeholder:text-slate-500 focus:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-dev-accent/50 focus:border-dev-accent transition-colors"
+                                        className="w-full px-4 py-3 rounded-xl border border-white/10 bg-slate-800 text-white placeholder:text-slate-500 focus:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-dev-accent/50 focus:border-dev-accent transition-colors"
                                         placeholder="juan@ejemplo.com"
                                     />
                                 </div>
@@ -92,7 +92,7 @@ export default function ContactForm() {
                                     id="message"
                                     rows={4}
                                     required
-                                    className="w-full px-4 py-3 rounded-xl border border-slate-700 bg-slate-800 text-white placeholder:text-slate-500 focus:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-dev-accent/50 focus:border-dev-accent transition-colors resize-none"
+                                    className="w-full px-4 py-3 rounded-xl border border-white/10 bg-slate-800 text-white placeholder:text-slate-500 focus:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-dev-accent/50 focus:border-dev-accent transition-colors resize-none"
                                     placeholder="Cuéntanos sobre tus objetivos..."
                                 />
                             </div>
