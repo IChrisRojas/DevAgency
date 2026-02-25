@@ -2,6 +2,7 @@
 	"$schema": "node_modules/wrangler/config-schema.json",
 	"name": "devagency",
 	"compatibility_date": "2025-02-24",
+	"main": "src/worker.ts",
 	"assets": {
 		"directory": "./dist",
 		"binding": "ASSETS"
