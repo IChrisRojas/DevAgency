@@ -10,6 +10,7 @@
   uniform float uExplosion;
   
   attribute vec3 position2;
+  attribute vec3 aDirection;
   attribute vec3 customColor;
   attribute float randomOffset;
   attribute float shapeType;
@@ -32,16 +33,15 @@
       vShapeType = shapeType;
   
       vec3 mixedPosition = mix(position, position2, uProgress);
-      float noise = snoise(mixedPosition * 2.0 + uTime * 0.5 + randomOffset) * 0.1;
+      float noise = snoise(mixedPosition * 1.5 + uTime * 0.15 + randomOffset) * 0.05;
       vec3 pseudoNormal = normalize(mixedPosition);
       mixedPosition += pseudoNormal * noise;
   
-      vec3 direction = normalize(mixedPosition);
-      mixedPosition += direction * uExplosion * randomOffset * 5.0;
+      mixedPosition += aDirection * uExplosion * 10.0;
   
       vec4 mvPosition = modelViewMatrix * vec4(mixedPosition, 1.0);
       
-      gl_PointSize = (15.0 * aSize + noise * 15.0) * (1.0 / -mvPosition.z);
+      gl_PointSize = (12.0 * aSize + noise * 5.0) * (1.0 / -mvPosition.z);
       gl_Position = projectionMatrix * mvPosition;
   }
 </script>
@@ -50,38 +50,57 @@
   varying vec3 vColor;
   varying float vShapeType;
   
+  // Función SDF para un triángulo equilátero centrado
+  // Retorna la distancia desde el punto 'p' (centro en 0,0) a los bordes de un triángulo de radio 'r'
+  float sdEquilateralTriangle(in vec2 p, in float r) {
+      const float k = sqrt(3.0);
+      p.x = abs(p.x) - r;
+      p.y = p.y + r/k;
+      if( p.x + k*p.y > 0.0 ) p = vec2(p.x-k*p.y,-k*p.x-p.y)/2.0;
+      p.x -= clamp( p.x, -2.0*r, 0.0 );
+      return -length(p)*sign(p.y);
+  }
+
   void main() {
-      vec2 xy = gl_PointCoord.xy - vec2(0.5);
-      float ll = length(xy);
-      float opacity = 1.0;
+      // Coordenadas locales del punto (-0.5 a 0.5)
+      vec2 uv = gl_PointCoord.xy - vec2(0.5);
       
-      int shape = int(mod(vShapeType, 3.0));
+      // Orientación del triángulo: que apunte hacia arriba o rote levemente si se desea
+      // Para este diseño, un triángulo equilátero estático orientado hacia arriba
+      // Multiplicamos uv.y por -1 porque WebGL invierte el eje Y en gl_PointCoord
+      vec2 p = vec2(uv.x, -uv.y); 
+
+      // Ajustamos el tamaño del triángulo dentro del punto (radio)
+      float radius = 0.35; 
+      float d = sdEquilateralTriangle(p, radius);
       
-      if (shape == 0) {
-          // Círculo
-          if (ll > 0.5) discard;
-          opacity = smoothstep(0.5, 0.1, ll);
-      } else if (shape == 1) {
-          // Triángulo (aproximación SDF)
-          float d = max(abs(xy.x) * 0.866025 + xy.y * 0.5, -xy.y);
-          if (d > 0.25) discard;
-          opacity = smoothstep(0.25, 0.15, d);
-      } else {
-          // Rombo / Diamante
-          float d = abs(xy.x) + abs(xy.y);
-          if (d > 0.5) discard;
-          opacity = smoothstep(0.5, 0.2, d);
-      }
+      // Creamos un borde hueco (wireframe). 
+      // Si la distancia 'd' está cerca de 0 (el borde), la opacidad es 1.
+      // Definimos el grosor del borde
+      float thickness = 0.05;
       
-      gl_FragColor = vec4(vColor, opacity);
+      // Antialiasing basado en la función smoothstep
+      // abs(d) nos da la distancia al borde tanto por dentro como por fuera
+      float edge = abs(d) - thickness;
+      
+      // Suavizado del borde (0.02 es el factor de suavizado)
+      float opacity = 1.0 - smoothstep(0.0, 0.03, edge);
+
+      // Descartar píxeles completamente transparentes por rendimiento
+      if (opacity < 0.05) discard;
+      
+      // Aumentar el brillo (opcionalmente sobre-saturando el color para el Bloom)
+      gl_FragColor = vec4(vColor * 1.5, opacity); 
   }
 </script>
 
 <script>
-  import { Scene, FogExp2, PerspectiveCamera, WebGLRenderer, Vector2, BufferGeometry, BufferAttribute, Color, ShaderMaterial, AdditiveBlending, Points, Clock } from 'three';
+  import { Scene, FogExp2, PerspectiveCamera, WebGLRenderer, Vector2, BufferGeometry, BufferAttribute, Color, ShaderMaterial, NormalBlending, Points, Clock, Box3, Vector3 } from 'three';
   import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
   import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
   import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+  import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+  import { MeshSurfaceSampler } from 'three/examples/jsm/math/MeshSurfaceSampler.js';
   import gsap from 'gsap';
   import ScrollTrigger from 'gsap/ScrollTrigger';
 
@@ -106,20 +125,24 @@
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     
     if (!isMobile) {
-        const bloomPass = new UnrealBloomPass(new Vector2(256, 256), 1.5, 0.4, 0.85);
-        bloomPass.threshold = 0.2;
-        bloomPass.strength = 1.2;
-        bloomPass.radius = 0.5;
+        const bloomPass = new UnrealBloomPass(new Vector2(256, 256), 2.5, 0.5, 0.85); // Aumentado strength a 2.5 y threshold a 0.5
+        bloomPass.threshold = 0.1; // Brillo más fácil de activar
+        bloomPass.strength = 2.5; // Resplandor potente holográfico
+        bloomPass.radius = 1.2;
         composer.addPass(bloomPass);
     }
 
-    const particleCount = 8000;
+    const particleCount = 10000; // Reducido a 10000
 
     const positions1 = new Float32Array(particleCount * 3);
     const positions2 = new Float32Array(particleCount * 3);
     const shapeTypes = new Float32Array(particleCount);
     const aSizes = new Float32Array(particleCount);
+    const directions = new Float32Array(particleCount * 3);
     
+    const colors = new Float32Array(particleCount * 3);
+    const randomOffsets = new Float32Array(particleCount);
+
     function randomInBox(w: number, h: number, d: number, offsetX = 0, offsetY = 0, offsetZ = 0) {
         return [
             (Math.random() - 0.5) * w + offsetX,
@@ -129,53 +152,132 @@
     }
 
     for (let i = 0; i < particleCount; i++) {
-        let px, py, pz;
-        if (Math.random() > 0.3) {
-            // Monitor screen: más profundo para la vista diagonal
-            [px, py, pz] = randomInBox(3.0, 2.0, 0.4, 0, 0.5, 0);
-        } else {
-            // Keyboard base: más grueso y con offset frontal para notarse
-            [px, py, pz] = randomInBox(3.0, 0.2, 1.8, 0, -0.6, 0.7);
-        }
+        const [px, py, pz] = randomInBox(40.0, 40.0, 20.0, 0, 0, -5.0);
+        positions1[i * 3] = px; positions1[i * 3 + 1] = py; positions1[i * 3 + 2] = pz;
+        positions2[i * 3] = px; positions2[i * 3 + 1] = py; positions2[i * 3 + 2] = pz;
         
-        positions1[i * 3] = px;
-        positions1[i * 3 + 1] = py;
-        positions1[i * 3 + 2] = pz;
-
-        // Smartphone: proporciones ajustadas
-        let [ax, ay, az] = randomInBox(1.5, 2.8, 0.3);
-        positions2[i * 3] = ax;
-        positions2[i * 3 + 1] = ay;
-        positions2[i * 3 + 2] = az;
-
         shapeTypes[i] = Math.floor(Math.random() * 3);
-        aSizes[i] = Math.random() * 1.5 + 0.5; // Variación de tamaño de 0.5x a 2.0x
-    }
-
-    const colors = new Float32Array(particleCount * 3);
-    const randomOffsets = new Float32Array(particleCount);
-
-    const colorPalette = [
-        new Color(0x8b5cf6), // Violeta
-        new Color(0xccff00), // Amarillo Neón
-        new Color(0xffffff)  // Blanco
-    ];
-
-    for(let i = 0; i < particleCount; i++) {
-        const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
-        colors[i*3] = color.r;
-        colors[i*3+1] = color.g;
-        colors[i*3+2] = color.b;
+        aSizes[i] = Math.random() * 10.0 + 8.0; // Triángulos más grandes para ver el hueco
+        
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos((Math.random() * 2) - 1);
+        directions[i * 3] = Math.sin(phi) * Math.cos(theta);
+        directions[i * 3 + 1] = Math.sin(phi) * Math.sin(theta);
+        directions[i * 3 + 2] = Math.cos(phi);
+        
+        colors[i*3] = 0.5; colors[i*3+1] = 0.5; colors[i*3+2] = 0.5;
         randomOffsets[i] = Math.random();
     }
 
     const particlesGeometry = new BufferGeometry();
     particlesGeometry.setAttribute('position', new BufferAttribute(positions1, 3));
     particlesGeometry.setAttribute('position2', new BufferAttribute(positions2, 3));
+    particlesGeometry.setAttribute('aDirection', new BufferAttribute(directions, 3));
     particlesGeometry.setAttribute('customColor', new BufferAttribute(colors, 3));
     particlesGeometry.setAttribute('randomOffset', new BufferAttribute(randomOffsets, 1));
     particlesGeometry.setAttribute('shapeType', new BufferAttribute(shapeTypes, 1));
     particlesGeometry.setAttribute('aSize', new BufferAttribute(aSizes, 1));
+
+    const loader = new GLTFLoader();
+    
+    Promise.all([
+        new Promise(resolve => loader.load('/models/lightbulb.glb', resolve)),
+        new Promise(resolve => loader.load('/models/brain.glb', resolve))
+    ]).then(([bulbGLTF, brainGLTF]) => {
+        
+        let bulbMesh, brainMesh;
+        
+        // Encontrar los Meshes dentro de la escena
+        bulbGLTF.scene.traverse((child) => {
+            if (child.isMesh) bulbMesh = child;
+        });
+        brainGLTF.scene.traverse((child) => {
+            if (child.isMesh) brainMesh = child;
+        });
+
+        if (!bulbMesh || !brainMesh) {
+            console.error("No meshes found in GLB files");
+            return;
+        }
+
+        // Crear samplers
+        const bulbSampler = new MeshSurfaceSampler(bulbMesh).build();
+        const brainSampler = new MeshSurfaceSampler(brainMesh).build();
+
+        // Calcular Bounding Box del cerebro para los colores espaciales
+        brainMesh.geometry.computeBoundingBox();
+        const brainBox = brainMesh.geometry.boundingBox;
+        const center = new Vector3();
+        brainBox.getCenter(center);
+        const maxDist = Math.max(
+            Math.abs(brainBox.max.x - center.x),
+            Math.abs(brainBox.max.y - center.y),
+            Math.abs(brainBox.max.z - center.z)
+        );
+
+        const _position = new Vector3();
+        const _normal = new Vector3(); // Required by sampler, but we may not use it
+        
+        // Colores: Amarillo neón/naranja (centro) a Púrpura/Azul (bordes)
+        const colorCenter = new Color(0xffaa00); // Naranja cálido/Amarillo
+        const colorEdge = new Color(0x6b21a8); // Púrpura vibrante
+        const colorHighlight = new Color(0x00d8ff); // Celeste para detalles
+        
+        const tempColor = new Color();
+
+        const newPos1 = new Float32Array(particleCount * 3);
+        const newPos2 = new Float32Array(particleCount * 3);
+        const newColors = new Float32Array(particleCount * 3);
+
+        for (let i = 0; i < particleCount; i++) {
+            // Muestrear Bombilla
+            bulbSampler.sample(_position, _normal);
+            // Escalar y posicionar la bombilla si es necesario. (Ej: escalar x2)
+            newPos1[i * 3] = _position.x * 2.5;
+            newPos1[i * 3 + 1] = (_position.y * 2.5) - 1.0; // Bajarla un poco
+            newPos1[i * 3 + 2] = _position.z * 2.5;
+
+            // Muestrear Cerebro
+            brainSampler.sample(_position, _normal);
+            // Escalar el cerebro
+            const brainScale = 2.0;
+            newPos2[i * 3] = _position.x * brainScale;
+            newPos2[i * 3 + 1] = _position.y * brainScale;
+            newPos2[i * 3 + 2] = _position.z * brainScale;
+
+            // Calcular Color espacial basado en la distancia al centro del cerebro
+            const distToCenter = _position.distanceTo(center);
+            // Normalizar distancia de 0.0 (centro) a 1.0 (borde)
+            let normalizedDist = Math.min(distToCenter / maxDist, 1.0);
+            
+            // Mezclar colores: Centro -> Borde
+            tempColor.copy(colorCenter).lerp(colorEdge, normalizedDist);
+            
+            // Añadir un poco de aleatoriedad (highlight)
+            if (Math.random() > 0.85) {
+                tempColor.lerp(colorHighlight, 0.7);
+            }
+
+            newColors[i * 3] = tempColor.r;
+            newColors[i * 3 + 1] = tempColor.g;
+            newColors[i * 3 + 2] = tempColor.b;
+        }
+
+        // Actualizar la geometría
+        particlesGeometry.setAttribute('position', new BufferAttribute(newPos1, 3));
+        particlesGeometry.setAttribute('position2', new BufferAttribute(newPos2, 3));
+        particlesGeometry.setAttribute('customColor', new BufferAttribute(newColors, 3));
+        
+        particlesGeometry.attributes.position.needsUpdate = true;
+        particlesGeometry.attributes.position2.needsUpdate = true;
+        particlesGeometry.attributes.customColor.needsUpdate = true;
+        
+        // Disparar una animación inicial suave para que los puntos viajen a su lugar
+        // Asumiendo que uProgress empieza en 0, si quisieramos que viajaran
+        // podemos animar el progress de 1 a 0 u otro truco, pero aquí simplemente 
+        // dejamos que uProgress siga el Scroll normal.
+        
+    }).catch(e => console.error("Error loading GLB models:", e));
 
     const vShaderEl = document.getElementById('vertexShader');
     const fShaderEl = document.getElementById('fragmentShader');
@@ -191,7 +293,7 @@
           },
           transparent: true,
           depthWrite: false,
-          blending: AdditiveBlending
+          blending: NormalBlending
       });
 
       const particleSystem = new Points(particlesGeometry, shaderMaterial);
@@ -205,13 +307,15 @@
       };
       setInitialPosition();
       
-      // Inclinación inicial isométrica/diagonal
-      particleSystem.rotation.set(0.2, -Math.PI / 6, 0);
+      // Rotación inicial base
+      particleSystem.rotation.set(0.1, -0.2, 0);
       
       scene.add(particleSystem);
 
-      // Scroll Animations
-      const tl = gsap.timeline({
+      // Rotación continua durante el scroll de toda la página
+      gsap.to(particleSystem.rotation, {
+          y: "+=" + Math.PI * 2,
+          ease: "none",
           scrollTrigger: {
               trigger: "main",
               start: "top top",
@@ -220,12 +324,22 @@
           }
       });
 
-      tl.to(particleSystem.rotation, { y: "+=" + Math.PI, duration: 2 }, 0)
-        .to(shaderMaterial.uniforms.uExplosion, { value: 1.5, duration: 1, ease: "power2.inOut" }, 1)
-        .to(camera.position, { z: 2, duration: 1.5, ease: "power1.inOut" }, 1)
-        .to(shaderMaterial.uniforms.uExplosion, { value: 0.0, duration: 1, ease: "power2.in" }, 2)
-        .to(shaderMaterial.uniforms.uProgress, { value: 1.0, duration: 1.5, ease: "power3.inOut" }, 2)
-        .to(particleSystem.rotation, { y: "+=" + Math.PI, duration: 2 }, 2);
+      // Transición explosiva: Explota, se dispersa y luego se reensambla
+      const morphTl = gsap.timeline({
+          scrollTrigger: {
+              trigger: "main",
+              start: "top top",
+              endTrigger: "#contact",
+              end: "top center",
+              scrub: 2 // Scrub más largo para mayor fluidez
+          }
+      });
+
+      morphTl
+          .to(shaderMaterial.uniforms.uExplosion, { value: 15.0, ease: "power2.in" }, 0) // Explota violentamente
+          .to(particleSystem.position, { x: window.innerWidth < 768 ? 0 : -2.5, ease: "none" }, 0)
+          .to(shaderMaterial.uniforms.uProgress, { value: 1.0, duration: 0.1 }, 0.5) // Cambia de forma mientras está disperso
+          .to(shaderMaterial.uniforms.uExplosion, { value: 0.0, ease: "power4.out" }, 0.8); // Colapsa rápidamente en el cerebro
 
       const clock = new Clock();
       function animate() {
