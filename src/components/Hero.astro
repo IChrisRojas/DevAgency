@@ -4,7 +4,7 @@ import { ChevronRight } from "lucide-react";
 ---
 
 <section
-    class="relative pt-48 pb-20 lg:pt-64 lg:pb-32 overflow-hidden flex flex-col items-center min-h-[90vh]"
+    class="relative pt-24 pb-20 lg:pt-24 lg:pb-32 overflow-hidden flex flex-col items-center min-h-[90vh]"
 >
     <!-- Decorative Background Gradients -->
     <div class="absolute inset-0 z-0 pointer-events-none">
@@ -18,9 +18,7 @@ import { ChevronRight } from "lucide-react";
         </div>
     </div>
 
-    <div
-        class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full"
-    >
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
         <div class="lg:grid lg:grid-cols-2 lg:gap-12 items-center">
             <!-- Hero Text Content -->
             <div
@@ -36,11 +34,17 @@ import { ChevronRight } from "lucide-react";
                         >Soluciones Digitales</span
                     >
                 </h1>
-                <p class="mt-6 text-xl text-slate-300 max-w-2xl mx-auto lg:mx-0 font-light">
-                    Ingeniería de software para el futuro de tu negocio. Desarrollamos aplicaciones móviles, plataformas web y software a medida que impulsan tu crecimiento.
+                <p
+                    class="mt-6 text-xl text-slate-300 max-w-2xl mx-auto lg:mx-0 font-light"
+                >
+                    Ingeniería de software para el futuro de tu negocio.
+                    Desarrollamos aplicaciones móviles, plataformas web y
+                    software a medida que impulsan tu crecimiento.
                 </p>
 
-                <div class="mt-10 flex flex-col sm:flex-row justify-center lg:justify-start gap-4">
+                <div
+                    class="mt-10 flex flex-col sm:flex-row justify-center lg:justify-start gap-4"
+                >
                     <a
                         href="#contact"
                         class="inline-flex items-center justify-center px-8 py-3.5 border border-transparent text-base font-medium rounded-full text-white bg-dev-accent hover:bg-violet-600 shadow-lg shadow-dev-accent/20 hover:shadow-dev-accent/40 hover:scale-105 transition-all duration-300"
@@ -78,7 +82,7 @@ import { ChevronRight } from "lucide-react";
             duration: 0.8,
             stagger: 0.2,
             ease: "power2.out",
-            force3D: true // Ensure hardware acceleration
+            force3D: true, // Ensure hardware acceleration
         });
     });
 </script>
