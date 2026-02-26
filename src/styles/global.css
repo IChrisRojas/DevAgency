@@ -3,16 +3,67 @@
 @theme {
   --color-dev-light: #f8fafc;
   --color-dev-accent: #8b5cf6;
-  --font-inter: 'Inter', sans-serif;
+  --font-body: 'Outfit', sans-serif;
+  --font-display: 'Syne', sans-serif;
+  --font-mono: 'Space Mono', monospace;
 }
 
 @layer base {
   html {
-    font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    font-family: var(--font-body), ui-sans-serif, system-ui, sans-serif;
     scroll-behavior: smooth;
   }
 
   body {
-    @apply bg-dev-light text-slate-900 antialiased selection:bg-dev-accent selection:text-white;
+    @apply bg-black text-white antialiased;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    @apply tracking-tight uppercase;
+  }
+}
+
+@layer components {
+  .grain-overlay {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+  }
+
+  .laser-border {
+    @apply relative border border-white/5;
+  }
+  
+  .laser-border::before {
+    content: '';
+    @apply absolute -inset-[1px] rounded-[inherit] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500;
+    background: radial-gradient(400px circle at var(--mouse-x) var(--mouse-y), rgba(139, 92, 246, 0.4), transparent 40%);
+    z-index: -1;
+  }
+
+  .label-mono {
+    font-family: var(--font-mono);
+    @apply text-[10px] tracking-[0.2em] uppercase font-bold;
+  }
+
+  .glass-text-protection {
+    @apply backdrop-blur-[1px] rounded-xl p-3 -m-3;
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.65) 0%, rgba(0, 0, 0, 0.25) 60%, transparent 100%);
+  }
+  
+  .text-shadow-subtle {
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+  }
+
+  .text-shadow-strong {
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 0, 0, 0.4);
+  }
+
+  .text-wrap-balance {
+    text-wrap: balance;
+  }
+
+  .text-pretty {
+    text-wrap: pretty;
   }
 }
