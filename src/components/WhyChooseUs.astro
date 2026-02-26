@@ -12,37 +12,30 @@ const reasons = [
 
 <section id="why-us" class="py-24 bg-transparent relative overflow-hidden">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="lg:grid lg:grid-cols-2 lg:gap-16 items-center">
+        <div class="lg:grid lg:grid-cols-2 lg:gap-24 items-center">
             <!-- Content -->
             <div
-                class="mb-12 lg:mb-0 why-us-text"
+                class="mb-16 lg:mb-0 why-us-text glass-text-protection"
                 style="opacity: 0; transform: translateY(40px);"
             >
-                <h2
-                    class="text-sm font-semibold text-dev-accent tracking-wide uppercase"
-                >
-                    La Diferencia DevAgency
-                </h2>
+                <h2 class="label-mono text-dev-accent mb-4">DIFERENCIACIÓN</h2>
                 <p
-                    class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-white sm:text-4xl"
+                    class="mt-2 text-6xl font-extrabold tracking-tighter text-white sm:text-7xl text-shadow-strong leading-[0.9]"
                 >
-                    Potenciamos tu visión tecnológica
+                    LA VISIÓN <br /> <span class="text-white">EJECUTADA</span>
                 </p>
-                <p class="mt-4 text-lg text-slate-300 font-light mb-8">
-                    Desarrollar soluciones digitales de alta calidad requiere más que solo escribir código. 
-                    Combinamos ingeniería de software robusta, diseño centrado en el usuario y una arquitectura 
-                    escalable para crear productos que realmente hagan avanzar tu negocio y te ayuden a alcanzar 
-                    tus objetivos con confianza.
+                <p class="mt-8 text-xl text-slate-300 font-normal mb-12 text-shadow-subtle text-pretty leading-relaxed">
+                    Donde otros ven código, nosotros vemos activos estratégicos. Combinamos ingeniería de software de grado militar con diseño centrado en el usuario para crear productos que no solo funcionan, sino que lideran su industria.
                 </p>
 
-                <ul class="space-y-4">
+                <ul class="space-y-6">
                     {
                         reasons.map((reason) => (
                             <li
-                                class="flex items-center text-slate-300 font-medium why-us-item"
+                                class="flex items-center text-slate-300 label-mono text-xs why-us-item"
                                 style="opacity: 0; transform: translateX(-20px);"
                             >
-                                <CheckCircle2 className="w-5 h-5 text-dev-accent mr-3 flex-shrink-0" />
+                                <div class="w-2 h-2 bg-dev-accent mr-4 flex-shrink-0" aria-hidden="true"></div>
                                 {reason}
                             </li>
                         ))
@@ -56,27 +49,27 @@ const reasons = [
                 style="opacity: 0; transform: scale(0.95);"
             >
                 <div
-                    class="aspect-square rounded-3xl bg-slate-900/50 backdrop-blur-sm border border-white/10 shadow-2xl overflow-hidden relative flex items-center justify-center p-8"
+                    class="aspect-square rounded-none bg-white/[0.03] backdrop-blur-2xl border border-white/5 shadow-2xl overflow-hidden relative flex items-center justify-center p-12"
                 >
                     <!-- Abstract representation of connected systems -->
                     <div
-                        class="w-full h-full relative border border-white/10 rounded-2xl bg-slate-800 shadow-sm flex flex-col p-6"
+                        class="w-full h-full relative border border-white/5 bg-black/40 flex flex-col p-8"
                     >
-                        <div class="w-1/3 h-4 bg-slate-700 rounded-full mb-8">
+                        <div class="w-1/3 h-[1px] bg-dev-accent mb-12 shadow-[0_0_15px_rgba(139,92,246,0.5)]">
                         </div>
-                        <div class="space-y-4">
-                            <div class="w-full h-3 bg-slate-600 rounded-full">
+                        <div class="space-y-6">
+                            <div class="w-full h-[1px] bg-white/10">
                             </div>
-                            <div class="w-5/6 h-3 bg-slate-600 rounded-full">
+                            <div class="w-5/6 h-[1px] bg-white/10">
                             </div>
-                            <div class="w-4/6 h-3 bg-slate-600 rounded-full">
+                            <div class="w-4/6 h-[1px] bg-white/10">
                             </div>
                         </div>
                         <div
-                            class="absolute bottom-6 right-6 w-16 h-16 bg-dev-accent/20 rounded-full flex items-center justify-center"
+                            class="absolute bottom-10 right-10 w-24 h-24 border border-dev-accent/20 rounded-none flex items-center justify-center group"
                         >
                             <div
-                                class="w-8 h-8 bg-dev-accent rounded-full animate-pulse shadow-[0_0_15px_rgba(139,92,246,0.5)]"
+                                class="w-12 h-12 bg-dev-accent/20 border border-dev-accent animate-pulse shadow-[0_0_30px_rgba(139,92,246,0.3)]"
                             >
                             </div>
                         </div>
@@ -85,11 +78,11 @@ const reasons = [
 
                 <!-- Decoration behind image -->
                 <div
-                    class="absolute -top-6 -right-6 w-32 h-32 bg-blue-100/50 rounded-full blur-2xl -z-10"
+                    class="absolute -top-10 -right-10 w-48 h-48 bg-dev-accent/10 rounded-full blur-[100px] -z-10"
                 >
                 </div>
                 <div
-                    class="absolute -bottom-8 -left-8 w-40 h-40 bg-purple-100/50 rounded-full blur-2xl -z-10"
+                    class="absolute -bottom-10 -left-10 w-64 h-64 bg-blue-500/10 rounded-full blur-[120px] -z-10"
                 >
                 </div>
             </div>
