@@ -6,8 +6,12 @@ import { ArrowUpRight } from "lucide-react";
 const projects = await getCollection("projects");
 ---
 
-<section id="portfolio" class="py-24 bg-transparent relative">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<section id="portfolio" class="py-24 bg-transparent relative overflow-hidden">
+    <!-- Decorative transition blob -->
+    <div class="absolute bottom-0 right-0 translate-y-1/2 translate-x-1/4 pointer-events-none z-0">
+        <div class="w-[600px] h-[600px] bg-dev-accent/15 rounded-full blur-[120px]"></div>
+    </div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div
             class="flex flex-col md:flex-row md:items-end justify-between mb-24 portfolio-reveal glass-text-protection w-full"
             style="opacity: 0; transform: translateY(40px);"

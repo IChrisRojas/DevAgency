@@ -1,26 +1,26 @@
 [
   {
-    "id": "web-development",
-    "title": "Desarrollo Web",
-    "description": "Creamos sitios web y plataformas a medida, optimizadas para el rendimiento y la conversión.",
-    "icon": "Monitor"
-  },
-  {
-    "id": "app-development",
-    "title": "Desarrollo de Apps Móviles",
-    "description": "Diseñamos y desarrollamos aplicaciones móviles intuitivas para iOS y Android.",
-    "icon": "Smartphone"
-  },
-  {
     "id": "custom-software",
-    "title": "Software a Medida",
-    "description": "Construimos soluciones informáticas robustas y escalables adaptadas a las necesidades específicas de tu negocio.",
+    "title": "Ingeniería de Software",
+    "description": "Construimos sistemas robustos y escalables de grado de producción, diseñados para soportar el crecimiento de tu infraestructura.",
     "icon": "Code"
   },
   {
+    "id": "web-development",
+    "title": "Web Apps",
+    "description": "Plataformas web de alto rendimiento con arquitecturas modernas y optimizadas para la conversión.",
+    "icon": "Monitor"
+  },
+  {
     "id": "tech-consulting",
-    "title": "Consultoría Tecnológica",
-    "description": "Te guiamos en la transformación digital de tu empresa para maximizar la eficiencia y el crecimiento.",
+    "title": "Estrategia IT",
+    "description": "Consultoría técnica especializada para optimizar procesos y guiar la evolución tecnológica de tu empresa.",
     "icon": "Lightbulb"
+  },
+  {
+    "id": "app-development",
+    "title": "Soluciones Mobile Nativas",
+    "description": "Diseñamos experiencias móviles de alta fidelidad que conectan con tus usuarios en cualquier dispositivo.",
+    "icon": "Smartphone"
   }
 ]

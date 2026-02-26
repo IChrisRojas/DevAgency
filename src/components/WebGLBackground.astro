@@ -472,45 +472,45 @@
 
             // NOTE: No masterTl.set() — initial position comes from setInitialPosition()
 
-            // 2. Transformation Phase (Hero -> Portfolio)
+            // 2. Transformation Phase (Hero -> Footer)
+            // Continuous rotation throughout the whole scroll
             masterTl.to(
                 particleSystem.rotation,
-                { y: "+=" + Math.PI * 2, ease: "none" },
+                { y: "+=" + Math.PI * 4, ease: "none", duration: 1.01 },
                 0,
             );
 
             masterTl
-                // Phase A: Quick explosion burst (scatter particles outward)
+                // Phase A: Extended explosion burst (scatter particles outward)
                 .to(
                     shaderMaterial.uniforms.uExplosion,
-                    { value: 1.5, duration: 0.15, ease: "power1.inOut" },
+                    { value: 1.5, duration: 0.4, ease: "power1.inOut" },
                     0.05,
                 )
-                // Phase B: Morph geometry while particles are scattered (invisible swap)
-                // Delayed so particles stay scattered through Services & WhyChooseUs
+                // Phase B: Morph geometry slowly while particles are scattered
                 .to(
                     shaderMaterial.uniforms.uProgress,
-                    { value: 1.0, duration: 0.25, ease: "none" },
+                    { value: 1.0, duration: 0.4, ease: "power1.inOut" },
                     0.25,
                 )
-                // Phase C: Gradually collapse to reveal brain near the contact section
+                // Phase C: Gradually collapse to reveal brain as we reach the contact section
                 .to(
                     shaderMaterial.uniforms.uExplosion,
-                    { value: 0.0, duration: 0.1, ease: "power2.out" },
-                    0.82, // Delayed to 0.82 as requested
+                    { value: 0.0, duration: 0.15, ease: "power2.out" },
+                    0.82,
                 )
                 // Phase D: Re-explode after passing the contact form into the footer
                 .to(
                     shaderMaterial.uniforms.uExplosion,
                     { value: 2.0, duration: 0.04, ease: "power2.in" },
-                    0.97, // Pushed to the very end
+                    0.97,
                 );
 
             // Self-rotation driven by scroll while in the contact section (0.8 -> 0.97)
-            // Slightly more rotation as per user request (Math.PI / 4.0)
+            // Slightly more rotation as per user request (Math.PI / 3.0)
             masterTl.to(
                 shaderMaterial.uniforms.uBrainRotation,
-                { value: Math.PI / 4.0, duration: 0.17, ease: "power1.inOut" },
+                { value: Math.PI / 3.0, duration: 0.17, ease: "power1.inOut" },
                 0.8,
             );
 
@@ -520,13 +520,14 @@
                 {
                     x: window.innerWidth < 1024 ? 0 : -2.8,
                     ease: "power2.inOut",
+                    duration: 0.5,
                 },
                 0.15,
             );
 
             masterTl.to(
                 particleSystem.rotation,
-                { x: 0, z: 0, ease: "sine.inOut" },
+                { x: 0, z: 0, ease: "sine.inOut", duration: 0.5 },
                 0.3,
             );
 

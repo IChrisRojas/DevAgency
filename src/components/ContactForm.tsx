@@ -36,10 +36,10 @@ export default function ContactForm() {
     };
 
     return (
-        <section id="contact" className="py-24 bg-gradient-to-b from-transparent to-transparent relative overflow-hidden">
-            {/* Decorative blurry blobs */}
-            <div className="absolute top-0 right-0 -translate-y-12 translate-x-1/3">
-                <div className="w-96 h-96 bg-dev-accent/20 rounded-full blur-[100px]" />
+        <section id="contact" className="py-24 bg-transparent relative overflow-hidden">
+            {/* Decorative blurry blobs - aligned with Portfolio bottom */}
+            <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 pointer-events-none">
+                <div className="w-[600px] h-[600px] bg-dev-accent/15 rounded-full blur-[120px]" />
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
