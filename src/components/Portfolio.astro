@@ -8,8 +8,13 @@ const projects = await getCollection("projects");
 
 <section id="portfolio" class="py-24 bg-transparent relative overflow-hidden">
     <!-- Decorative transition blob -->
-    <div class="absolute bottom-0 right-0 translate-y-1/2 translate-x-1/4 pointer-events-none z-0">
-        <div class="w-[600px] h-[600px] bg-dev-accent/15 rounded-full blur-[120px]"></div>
+    <div
+        class="hidden lg:block absolute bottom-0 right-0 translate-y-1/2 translate-x-1/4 pointer-events-none z-0"
+    >
+        <div
+            class="w-[600px] h-[600px] bg-dev-accent/15 rounded-full blur-[120px]"
+        >
+        </div>
     </div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div
@@ -17,11 +22,14 @@ const projects = await getCollection("projects");
             style="opacity: 0; transform: translateY(40px);"
         >
             <div class="max-w-3xl">
-                <h2 class="label-mono text-dev-accent mb-4">CASOS DE ESTUDIO</h2>
+                <h2 class="label-mono text-dev-accent mb-4">
+                    CASOS DE ESTUDIO
+                </h2>
                 <p
-                    class="mt-2 text-6xl font-extrabold tracking-tighter text-white sm:text-7xl text-shadow-strong leading-[0.9]"
+                    class="mt-2 text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tighter text-white sm:text-7xl text-shadow-strong leading-none md:leading-[0.9]"
                 >
-                    PORTAFOLIO <br /> <span class="text-white">SELECCIONADO</span>
+                    PORTAFOLIO <br />
+                    <span class="text-white">SELECCIONADO</span>
                 </p>
             </div>
             <div class="mt-8 md:mt-0">
@@ -42,7 +50,7 @@ const projects = await getCollection("projects");
                 projects.map((project, index) => (
                     <a
                         href={project.data.link || "#"}
-                        class="project-card block group cursor-pointer"
+                        class={`project-card group cursor-pointer ${index >= 2 ? "hidden md:block" : "block"}`}
                         style="opacity: 0; transform: translateY(40px);"
                     >
                         <div class="relative overflow-hidden rounded-none bg-white/[0.03] backdrop-blur-sm aspect-[4/5] mb-8 border border-white/5 group-hover:border-dev-accent/30 transition-all duration-700">
@@ -93,23 +101,26 @@ const projects = await getCollection("projects");
             scrollTrigger: {
                 trigger: "#portfolio",
                 start: "top 80%",
-                toggleActions: "play none none none"
-            }
+                toggleActions: "play none none none",
+            },
         });
 
         tl.to(".portfolio-reveal", {
             opacity: 1,
             y: 0,
             duration: 0.8,
-            ease: "power2.out"
-        })
-        .to(".project-card", {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            stagger: 0.15,
             ease: "power2.out",
-            force3D: true
-        }, "-=0.4");
+        }).to(
+            ".project-card",
+            {
+                opacity: 1,
+                y: 0,
+                duration: 0.8,
+                stagger: 0.15,
+                ease: "power2.out",
+                force3D: true,
+            },
+            "-=0.4",
+        );
     });
 </script>

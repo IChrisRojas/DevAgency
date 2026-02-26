@@ -21,7 +21,7 @@ const iconMap: Record<string, any> = {
         >
             <h2 class="label-mono text-dev-accent mb-4">CAPACIDADES</h2>
             <p
-                class="mt-2 text-6xl font-extrabold tracking-tighter text-white sm:text-7xl text-shadow-strong text-wrap-balance leading-[0.9]"
+                class="mt-2 text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tighter text-white sm:text-7xl text-shadow-strong text-wrap-balance leading-none md:leading-[0.9]"
             >
                 DISEÑADO PARA <br /> <span class="text-white">EL RENDIMIENTO</span>
             </p>
@@ -37,13 +37,13 @@ const iconMap: Record<string, any> = {
                     const isWide = index === 0 || index === 3;
                     return (
                         <div
-                            class={`service-card laser-border rounded-none p-10 bg-white/[0.03] backdrop-blur-xl transition-all duration-500 transform group cursor-default hover:scale-[1.03] hover:shadow-[inset_0_0_20px_rgba(139,92,246,0.15)] hover:backdrop-blur-md ${isWide ? 'md:col-span-4' : 'md:col-span-2'}`}
+                            class={`service-card laser-border rounded-none p-8 md:p-10 bg-white/[0.05] md:bg-white/[0.03] backdrop-blur-xl transition-all duration-500 transform group cursor-default hover:scale-[1.03] hover:shadow-[inset_0_0_20px_rgba(139,92,246,0.15)] hover:backdrop-blur-md ${isWide ? 'md:col-span-4' : 'md:col-span-2'}`}
                             style="opacity: 0; transform: translateY(40px);"
                         >
-                            <div class="w-16 h-16 bg-dev-accent text-white rounded-none border border-white/5 flex items-center justify-center mb-10 transition-all duration-500">
-                                <Icon className="w-8 h-8 text-white service-icon transition-colors duration-500" aria-hidden="true" />
+                            <div class="w-14 h-14 md:w-16 md:h-16 bg-dev-accent text-white rounded-none border border-white/5 flex items-center justify-center mb-8 md:mb-10 transition-all duration-500">
+                                <Icon className="w-6 h-6 md:w-8 md:h-8 text-white service-icon transition-colors duration-500" aria-hidden="true" />
                             </div>
-                            <h3 class="text-3xl font-extrabold text-white mb-4 text-shadow-subtle tracking-tighter">
+                            <h3 class="text-2xl md:text-3xl font-extrabold text-white mb-4 text-shadow-subtle tracking-tighter">
                                 {service.data.title}
                             </h3>
                             <p class="text-slate-300 leading-relaxed font-normal text-pretty text-shadow-subtle">

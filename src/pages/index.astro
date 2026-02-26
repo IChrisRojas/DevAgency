@@ -20,6 +20,14 @@ import Footer from "../components/Footer.astro";
 		<WhyChooseUs />
 
 		<Portfolio />
+
+		<!-- Mobile-only spacer to allow the Brain model to construct before reaching the contact form -->
+		<div
+			id="mobile-brain-space"
+			class="block lg:hidden h-[60vh] w-full relative z-0"
+		>
+		</div>
+
 		<ContactForm client:visible />
 	</main>
 

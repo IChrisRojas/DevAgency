@@ -244,8 +244,11 @@
 
     gsap.registerPlugin(ScrollTrigger);
 
-    const canvas = document.querySelector("#webgl-canvas") as HTMLCanvasElement;
-    if (canvas) {
+    const initWebGL = () => {
+        const canvas = document.querySelector(
+            "#webgl-canvas",
+        ) as HTMLCanvasElement;
+        if (!canvas) return;
         const scene = new Scene();
         scene.fog = new FogExp2(0x000000, 0.025);
 
@@ -257,22 +260,27 @@
         );
         camera.position.z = 5;
 
-        const renderer = new WebGLRenderer({
-            canvas,
-            alpha: false,
-            antialias: true,
-        });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-        const renderScene = new RenderPass(scene, camera);
-        const composer = new EffectComposer(renderer);
-        composer.addPass(renderScene);
-
         const isMobile =
             /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
                 navigator.userAgent,
             );
+
+        const renderer = new WebGLRenderer({
+            canvas,
+            alpha: false,
+            antialias: true,
+            powerPreference: "high-performance",
+        });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        // Cap pixel ratio to 1.5 on mobile to save GPU fill rate
+        const pixelRatio = isMobile
+            ? Math.min(window.devicePixelRatio, 1.5)
+            : Math.min(window.devicePixelRatio, 2.0);
+        renderer.setPixelRatio(pixelRatio);
+
+        const renderScene = new RenderPass(scene, camera);
+        const composer = new EffectComposer(renderer);
+        composer.addPass(renderScene);
 
         if (!isMobile) {
             const bloomPass = new UnrealBloomPass(
@@ -288,7 +296,7 @@
         }
 
         // ========== PARTÍCULAS DEL MODELO (menor densidad para que se aprecie la forma nítida) ==========
-        const particleCount = isMobile ? 1500 : 4000;
+        const particleCount = isMobile ? 1000 : 4000;
 
         const positions1 = new Float32Array(particleCount * 3);
         const positions2 = new Float32Array(particleCount * 3);
@@ -466,7 +474,7 @@
                     start: "top top",
                     endTrigger: "footer",
                     end: "bottom bottom",
-                    scrub: 2.0, // Soft and fluid
+                    scrub: isMobile ? 1.0 : 2.0, // Tighter tracking on mobile for responsive brain reveal
                 },
             });
 
@@ -480,39 +488,87 @@
                 0,
             );
 
-            masterTl
-                // Phase A: Extended explosion burst (scatter particles outward)
-                .to(
-                    shaderMaterial.uniforms.uExplosion,
-                    { value: 1.5, duration: 0.4, ease: "power1.inOut" },
-                    0.05,
-                )
-                // Phase B: Morph geometry slowly while particles are scattered
-                .to(
-                    shaderMaterial.uniforms.uProgress,
-                    { value: 1.0, duration: 0.4, ease: "power1.inOut" },
-                    0.25,
-                )
-                // Phase C: Gradually collapse to reveal brain as we reach the contact section
-                .to(
-                    shaderMaterial.uniforms.uExplosion,
-                    { value: 0.0, duration: 0.15, ease: "power2.out" },
-                    0.82,
-                )
-                // Phase D: Re-explode after passing the contact form into the footer
-                .to(
-                    shaderMaterial.uniforms.uExplosion,
-                    { value: 2.0, duration: 0.04, ease: "power2.in" },
-                    0.97,
-                );
-
-            // Self-rotation driven by scroll while in the contact section (0.8 -> 0.97)
-            // Slightly more rotation as per user request (Math.PI / 3.0)
             masterTl.to(
-                shaderMaterial.uniforms.uBrainRotation,
-                { value: Math.PI / 3.0, duration: 0.17, ease: "power1.inOut" },
-                0.8,
+                particleSystem.rotation,
+                { y: "+=" + Math.PI * 4, ease: "none", duration: 1.01 },
+                0,
             );
+
+            if (isMobile) {
+                // MOBILE TIMELINE
+                // Brain must be FULLY constructed BEFORE the contact form appears.
+                // The #mobile-brain-space spacer sits between Portfolio (~0.55-0.65) and Contact (~0.85+).
+                // So we need construction done by ~0.60 and explosion at ~0.88.
+                masterTl
+                    // Phase A: Initial explosion burst — starts from 0 to avoid jump on first scroll
+                    .to(
+                        shaderMaterial.uniforms.uExplosion,
+                        { value: 1.5, duration: 0.15, ease: "power2.out" },
+                        0.0,
+                    )
+                    // Phase B: Morph into brain shape (during services/whychooseus)
+                    .to(
+                        shaderMaterial.uniforms.uProgress,
+                        { value: 1.0, duration: 0.25, ease: "power1.inOut" },
+                        0.1,
+                    )
+                    // Phase C: Collapse to reveal brain — during portfolio section
+                    // Portfolio starts at ~0.56, so collapse 0.45→0.60 ensures brain visible by mid-portfolio
+                    .to(
+                        shaderMaterial.uniforms.uExplosion,
+                        { value: 0.0, duration: 0.15, ease: "power2.out" },
+                        0.45,
+                    )
+                    // Self-rotation while fully constructed (during portfolio cards)
+                    .to(
+                        shaderMaterial.uniforms.uBrainRotation,
+                        {
+                            value: Math.PI / 3.0,
+                            duration: 0.3,
+                            ease: "power1.inOut",
+                        },
+                        0.55,
+                    )
+                    // Phase D: Re-explode when hitting the Contact Form
+                    .to(
+                        shaderMaterial.uniforms.uExplosion,
+                        { value: 2.0, duration: 0.05, ease: "power2.in" },
+                        0.88,
+                    );
+            } else {
+                // DESKTOP TIMELINE (Original Logic)
+                masterTl
+                    .to(
+                        shaderMaterial.uniforms.uExplosion,
+                        { value: 1.5, duration: 0.4, ease: "power1.inOut" },
+                        0.05,
+                    )
+                    .to(
+                        shaderMaterial.uniforms.uProgress,
+                        { value: 1.0, duration: 0.4, ease: "power1.inOut" },
+                        0.25,
+                    )
+                    .to(
+                        shaderMaterial.uniforms.uExplosion,
+                        { value: 0.0, duration: 0.15, ease: "power2.out" },
+                        0.82,
+                    )
+                    .to(
+                        shaderMaterial.uniforms.uExplosion,
+                        { value: 2.0, duration: 0.04, ease: "power2.in" },
+                        0.97,
+                    );
+
+                masterTl.to(
+                    shaderMaterial.uniforms.uBrainRotation,
+                    {
+                        value: Math.PI / 3.0,
+                        duration: 0.17,
+                        ease: "power1.inOut",
+                    },
+                    0.8,
+                );
+            }
 
             // Move to left side during transformation
             masterTl.to(
@@ -532,23 +588,8 @@
             );
 
             // 3. Anchoring Phase — Y movement integrated into master timeline for reversibility
-            // Calculate the contact form's target Y in Three.js coords at page load
-            const contactSection = document.querySelector(
-                "#contact",
-            ) as HTMLElement;
-
-            // Compute target Y: where the brain should be when aligned with the form
-            let contactTargetY = 0;
-            if (contactSection) {
-                const formCard = contactSection.querySelector(
-                    "[class*='backdrop-blur']",
-                ) as HTMLElement;
-                if (formCard) {
-                    contactTargetY = 0.2; // Slight offset to account for header
-                }
-            }
-
-            const initialY = window.innerWidth < 1024 ? 0 : -0.2;
+            const initialY = isMobile ? 0 : -0.2;
+            let contactTargetY = isMobile ? -0.8 : 0.2; // Move lower (-0.8) on mobile to drop entirely into the empty space area
 
             // Hold Y stable during hero and services sections (0 → 0.3)
             masterTl.to(
@@ -557,18 +598,19 @@
                 0,
             );
 
-            // Hold Y stable during mid-scroll (WhyChooseUs, Portfolio) (0.4 → 0.75)
+            // Hold Y stable during mid-scroll (WhyChooseUs, Portfolio) (0.4 → 0.60)
             masterTl.to(
                 particleSystem.position,
-                { y: initialY, duration: 0.35, ease: "none" },
+                { y: initialY, duration: 0.2, ease: "none" },
                 0.4,
             );
 
-            // Smoothly transition Y to contact form position (0.75 → 0.9)
+            // Smoothly transition Y to anchor during portfolio section
+            // On mobile: start moving at 0.50 (just before portfolio at 0.56)
             masterTl.to(
                 particleSystem.position,
-                { y: contactTargetY, duration: 0.15, ease: "power2.inOut" },
-                0.78, // Aligned with the brain construction delay
+                { y: contactTargetY, duration: 0.2, ease: "power2.inOut" },
+                isMobile ? 0.5 : 0.78,
             );
 
             // Load from Cache
@@ -634,13 +676,9 @@
                     particlesGeometry.attributes.customColor.needsUpdate = true;
                     particlesGeometry.attributes.aSize.needsUpdate = true;
 
-                    gsap.to(particleSystem.scale, {
-                        x: 1,
-                        y: 1,
-                        z: 1,
-                        duration: 1.2,
-                        ease: "power2.out",
-                    });
+                    // Set scale immediately — the explosion already starts scattered
+                    // so there's no need for a separate scale-in animation that conflicts
+                    particleSystem.scale.set(1, 1, 1);
                 } catch (e) {
                     console.error("Error loading point cache:", e);
                 }
@@ -672,5 +710,12 @@
                 }, 250);
             });
         }
+    };
+
+    // Lazy initialization for better First Contentful Paint (FCP)
+    if (typeof window.requestIdleCallback === "function") {
+        window.requestIdleCallback(initWebGL);
+    } else {
+        setTimeout(initWebGL, 100);
     }
 </script>
