@@ -20,6 +20,13 @@ pnpm-debug.log*
 # macOS-specific files
 .DS_Store
 
+# Agent skills and lock files
+.agent/
+.agents/
+skills-lock.json
+implementer-prompt.md
+*.log
+
 # jetbrains setting folder
 .idea/
 docs/
