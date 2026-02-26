@@ -402,7 +402,7 @@
         // ========== SISTEMA DE PARTÍCULAS DE MODELOS ==========
         if (vertexShader && fragmentShader) {
             const getParticleSizeFactor = () =>
-                window.innerWidth < 1024 ? 30.0 : 45.0; // Multiplicador general de tamaño
+                window.innerWidth < 1024 ? 60.0 : 50.0; // Increased base sizes for better visibility
 
             const shaderMaterial = new ShaderMaterial({
                 vertexShader: vertexShader,
@@ -589,7 +589,7 @@
                         bgPositions[i * 3] = d.p[0];
                         bgPositions[i * 3 + 1] = d.p[1];
                         bgPositions[i * 3 + 2] = d.p[2];
-                        bgSizes[i] = d.s * 2.5; // Aumentado el tamaño 2.5x para mayor visibilidad
+                        bgSizes[i] = d.s * (isMobile ? 4.0 : 2.5); // Boost background particles on mobile
                         bgVelocities[i * 3] = d.v[0];
                         bgVelocities[i * 3 + 1] = d.v[1];
                         bgVelocities[i * 3 + 2] = d.v[2];
