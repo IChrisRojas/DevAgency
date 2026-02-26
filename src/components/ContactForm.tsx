@@ -36,13 +36,10 @@ export default function ContactForm() {
     };
 
     return (
-        <section id="contact" className="py-24 bg-gradient-to-b from-transparent to-[#020202] relative overflow-hidden">
+        <section id="contact" className="py-24 bg-gradient-to-b from-transparent to-transparent relative overflow-hidden">
             {/* Decorative blurry blobs */}
             <div className="absolute top-0 right-0 -translate-y-12 translate-x-1/3">
                 <div className="w-96 h-96 bg-dev-accent/20 rounded-full blur-[100px]" />
-            </div>
-            <div className="absolute bottom-0 left-0 translate-y-1/3 -translate-x-1/3">
-                <div className="w-96 h-96 bg-blue-500/20 rounded-full blur-[100px]" />
             </div>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -53,9 +50,8 @@ export default function ContactForm() {
                     {/* Right side: Contact Form */}
                     <div
                         ref={sectionRef}
-                        className={`bg-slate-900/50 backdrop-blur-md rounded-3xl p-8 md:p-12 shadow-2xl border border-white/10 transition-all duration-1000 transform ${
-                            isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-                        }`}
+                        className={`bg-slate-900/50 backdrop-blur-md rounded-3xl p-8 md:p-12 shadow-2xl border border-white/10 transition-all duration-1000 transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
+                            }`}
                     >
                         <div className="text-left mb-10">
                             <h2 className="text-3xl font-bold text-white">Construyamos algo brillante.</h2>

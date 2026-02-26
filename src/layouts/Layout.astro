@@ -14,32 +14,34 @@ const {
 ---
 
 <!doctype html>
-<html lang="es">
+<html lang="es" style="color-scheme: dark;">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="description" content={description} />
 		<meta name="viewport" content="width=device-width" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<meta name="generator" content={Astro.generator} />
-		<!-- Google Fonts: Inter -->
+		<!-- Google Fonts: Syne, Outfit, Space Mono -->
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		                <link
-		                        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-		                        rel="stylesheet"
-		                        media="print"
-		                        onload="this.media='all'"
-		                />
-		                <noscript>
-		                        <link
-		                                href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-		                                rel="stylesheet"
-		                        />
-		                </noscript>		<title>{title}</title>
+		<link
+			href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&family=Syne:wght@700;800&display=swap"
+			rel="stylesheet"
+			media="print"
+			onload="this.media='all'"
+		/>
+		<noscript>
+			<link
+				href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&family=Syne:wght@700;800&display=swap"
+				rel="stylesheet"
+			/>
+		</noscript>
+		<title>{title}</title>
 	</head>
 	<body
-		class="bg-black text-white min-h-screen flex flex-col overflow-x-hidden"
+		class="bg-black text-white min-h-screen flex flex-col overflow-x-hidden selection:bg-dev-accent selection:text-white"
 	>
+		<div class="grain-overlay pointer-events-none fixed inset-0 z-50 opacity-[0.03]"></div>
 		<WebGLBackground />
 		<slot />
 	</body>

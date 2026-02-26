@@ -19,15 +19,11 @@
         ShaderMaterial,
         AdditiveBlending,
         Points,
-        Mesh,
         Clock,
-        Vector3,
     } from "three";
     import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
     import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
     import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
-    import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-    import { MeshSurfaceSampler } from "three/examples/jsm/math/MeshSurfaceSampler.js";
 
     import gsap from "gsap";
     import ScrollTrigger from "gsap/ScrollTrigger";
@@ -38,6 +34,7 @@
   uniform float uProgress;
   uniform float uExplosion;
   uniform float uSizeFactor;
+  uniform float uBrainRotation;
   
   attribute vec3 position2;
   attribute vec3 aDirection;
@@ -66,7 +63,17 @@
       vec3 pseudoNormal = normalize(mixedPosition);
       mixedPosition += pseudoNormal * noise;
 
-  
+      // Brain self-rotation when constructed
+      // Driven by scroll via uBrainRotation
+      float rotIntensity = (1.0 - smoothstep(0.0, 0.5, uExplosion)) * smoothstep(0.5, 1.0, uProgress);
+      if (rotIntensity > 0.01) {
+          float angle = uBrainRotation * rotIntensity;
+          float s = sin(angle);
+          float c = cos(angle);
+          mat2 rotMat = mat2(c, -s, s, c);
+          mixedPosition.xz = rotMat * mixedPosition.xz;
+      }
+
       mixedPosition += aDirection * uExplosion * 2.5;
   
       // Profundidad para opacidad y coloración interior brillante
@@ -134,7 +141,9 @@
           // Punto brillante para filamento / núcleo cerebro (glow intenso)
           float softDist = exp(-dist * 4.0);
           alpha = smoothstep(0.0, 1.0, softDist);
-          colorMod = vec3(2.5); // Extra brillo
+          // Tinte amarillento/dorado para evitar que sature a blanco puro
+          colorMod = vec3(1.0, 0.8, 0.2); 
+          // colorMod = vec3(1.0, 1.8, 0.4); 
       } else if (vShapeType < 3.5) {
           // Cuadrado rotado outline (metal bombilla / base cerebro)
           float boxAngle = 0.785;
@@ -229,7 +238,7 @@
       }
 
       if (alpha < 0.01) discard;
-      gl_FragColor = vec4(vColor, alpha * vOpacity);
+      gl_FragColor = vec4(vColor, alpha * vOpacity * 0.7);
   }
   `;
 
@@ -289,50 +298,12 @@
         const colors = new Float32Array(particleCount * 3);
         const randomOffsets = new Float32Array(particleCount);
 
-        // Paleta de colores ajustada inspirada en la referencia Dala
-        const colorPalette = [
-            new Color(0xfbbf24), // Dorado/Amarillo
-            new Color(0xf59e0b), // Ámbar
-            new Color(0x8b5cf6), // Púrpura vibrante
-            new Color(0x06b6d4), // Cyan
-            new Color(0xffffff), // Blanco
-            new Color(0x6d28d9), // Púrpura oscuro
-        ];
-
         for (let i = 0; i < particleCount; i++) {
-            positions1[i * 3] = 0;
-            positions1[i * 3 + 1] = 0;
-            positions1[i * 3 + 2] = 0;
-            positions2[i * 3] = 0;
-            positions2[i * 3 + 1] = 0;
-            positions2[i * 3 + 2] = 0;
-
-            // Shapes y colores se asignarán después, según la parte del modelo
-            shapeTypes[i] = 1; // Por defecto triángulo outline (se sobreescribe en loader)
-
-            // Tamaños mucho más reducidos... ¡Pero aumentados para que se vean bien!
-            const sizeRand = Math.random();
-            if (sizeRand < 0.05) {
-                aSizes[i] = Math.random() * 2.5 + 1.2; // Grandes (5%)
-            } else if (sizeRand < 0.25) {
-                aSizes[i] = Math.random() * 1.0 + 0.6; // Medianas (20%)
-            } else {
-                aSizes[i] = Math.random() * 0.4 + 0.2; // Pequeñas (75%)
-            }
-
             const theta = Math.random() * Math.PI * 2;
             const phi = Math.acos(Math.random() * 2 - 1);
             directions[i * 3] = Math.sin(phi) * Math.cos(theta);
             directions[i * 3 + 1] = Math.sin(phi) * Math.sin(theta);
             directions[i * 3 + 2] = Math.cos(phi);
-
-            // Asignar color aleatorio de la paleta
-            const color =
-                colorPalette[Math.floor(Math.random() * colorPalette.length)];
-            colors[i * 3] = color.r;
-            colors[i * 3 + 1] = color.g;
-            colors[i * 3 + 2] = color.b;
-
             randomOffsets[i] = Math.random();
         }
 
@@ -364,195 +335,20 @@
         particlesGeometry.setAttribute("aSize", new BufferAttribute(aSizes, 1));
 
         let particleSystem: any;
-        const loader = new GLTFLoader();
 
-        Promise.all([
-            new Promise<any>((resolve) =>
-                loader.load("/models/light_bulb.glb", resolve),
-            ),
-            new Promise<any>((resolve) =>
-                loader.load("/models/Rotten Brain.glb", resolve),
-            ),
-        ])
-            .then(([bulbGLTF, brainGLTF]) => {
-                // Recoger TODAS las meshes y crear samplers individuales
-                const getSamplers = (gltf: any, targetSize: number) => {
-                    const meshes: any[] = [];
-                    gltf.scene.updateMatrixWorld(true);
-                    gltf.scene.traverse((child: any) => {
-                        if (child.isMesh) meshes.push(child);
-                    });
-                    if (meshes.length === 0) return null;
+        // Specific color mapping from cache to palette
+        const partColorPalette = [
+            [
+                new Color(0x8b5cf6),
+                new Color(0x06b6d4),
+                new Color(0xa855f7),
+                new Color(0xffffff),
+            ], // Glass (idx 0)
+            [new Color(0xc0c0c0), new Color(0x9ca3af), new Color(0xe5e7eb)], // Metal (idx 1)
+            [new Color(0xffd700), new Color(0xffa500), new Color(0xffff00)], // Filament (idx 2)
+        ];
 
-                    // Calcular bounding box global para centrar y normalizar
-                    let minX = Infinity,
-                        minY = Infinity,
-                        minZ = Infinity;
-                    let maxX = -Infinity,
-                        maxY = -Infinity,
-                        maxZ = -Infinity;
-                    for (const m of meshes) {
-                        const geom = m.geometry.clone();
-                        geom.applyMatrix4(m.matrixWorld);
-                        const posArr = geom.getAttribute("position").array;
-                        for (let j = 0; j < posArr.length; j += 3) {
-                            minX = Math.min(minX, posArr[j]);
-                            minY = Math.min(minY, posArr[j + 1]);
-                            minZ = Math.min(minZ, posArr[j + 2]);
-                            maxX = Math.max(maxX, posArr[j]);
-                            maxY = Math.max(maxY, posArr[j + 1]);
-                            maxZ = Math.max(maxZ, posArr[j + 2]);
-                        }
-                    }
-                    const cx = (minX + maxX) / 2,
-                        cy = (minY + maxY) / 2,
-                        cz = (minZ + maxZ) / 2;
-                    const maxDim = Math.max(
-                        maxX - minX,
-                        maxY - minY,
-                        maxZ - minZ,
-                    );
-                    const scale = targetSize / maxDim;
-
-                    // Crear samplers normalizados para cada mesh
-                    const samplers: any[] = [];
-                    for (const m of meshes) {
-                        const geom = m.geometry.clone();
-                        geom.applyMatrix4(m.matrixWorld);
-                        geom.translate(-cx, -cy, -cz);
-                        geom.scale(scale, scale, scale);
-                        const dummy = new Mesh(geom);
-                        samplers.push(new MeshSurfaceSampler(dummy).build());
-                    }
-                    return samplers;
-                };
-
-                const bulbSamplers = getSamplers(bulbGLTF, 4.0);
-                const brainSamplers = getSamplers(brainGLTF, 4.0);
-
-                if (!bulbSamplers || !brainSamplers) return;
-
-                const _position = new Vector3();
-                const _normal = new Vector3();
-
-                const pos1Array = particlesGeometry.attributes.position
-                    .array as Float32Array;
-                const pos2Array = particlesGeometry.attributes.position2
-                    .array as Float32Array;
-                const shapeArr = particlesGeometry.attributes.shapeType
-                    .array as Float32Array;
-                const colorArr = particlesGeometry.attributes.customColor
-                    .array as Float32Array;
-                const sizeArr = particlesGeometry.attributes.aSize
-                    .array as Float32Array;
-
-                // Colores por tipo de parte
-                const metalColors = [
-                    new Color(0xc0c0c0),
-                    new Color(0x9ca3af),
-                    new Color(0xe5e7eb),
-                ];
-                const filamentColors = [
-                    new Color(0xfbbf24),
-                    new Color(0xf59e0b),
-                    new Color(0xffffff),
-                ];
-                const glassColors = [
-                    new Color(0x8b5cf6),
-                    new Color(0x06b6d4),
-                    new Color(0xa855f7),
-                    new Color(0xffffff),
-                ];
-                const brainMainColors = [
-                    new Color(0x8b5cf6),
-                    new Color(0xd946ef),
-                    new Color(0x6d28d9),
-                    new Color(0xffffff),
-                ];
-                const brainDetailColors = [
-                    new Color(0xfbbf24),
-                    new Color(0x06b6d4),
-                    new Color(0xf59e0b),
-                ];
-
-                for (let i = 0; i < particleCount; i++) {
-                    // ===== BOMBILLA (position1) =====
-                    const bulbMeshIdx = i % bulbSamplers.length;
-                    const bulbS = bulbSamplers[bulbMeshIdx];
-                    bulbS.sample(_position, _normal);
-                    pos1Array[i * 3] = _position.x;
-                    pos1Array[i * 3 + 1] = _position.y;
-                    pos1Array[i * 3 + 2] = _position.z;
-
-                    // Asignar forma y color según la parte del modelo
-                    // Heurística: parte baja = metal (y <-0.5), centro = filamento (pequeño radio), resto = vidrio
-                    const py = _position.y;
-                    const radius = Math.sqrt(
-                        _position.x * _position.x + _position.z * _position.z,
-                    );
-
-                    if (py < -0.8) {
-                        // Parte metálica (base/rosca) → cuadrados rotados brillantes
-                        shapeArr[i] = 3;
-                        const mc =
-                            metalColors[
-                                Math.floor(Math.random() * metalColors.length)
-                            ];
-                        colorArr[i * 3] = mc.r;
-                        colorArr[i * 3 + 1] = mc.g;
-                        colorArr[i * 3 + 2] = mc.b;
-                        sizeArr[i] = Math.random() * 0.6 + 0.3;
-                    } else if (radius < 0.6 && py > -0.3 && py < 1.2) {
-                        // Filamento interior → puntos brillantes
-                        shapeArr[i] = 2;
-                        const fc =
-                            filamentColors[
-                                Math.floor(
-                                    Math.random() * filamentColors.length,
-                                )
-                            ];
-                        colorArr[i * 3] = fc.r;
-                        colorArr[i * 3 + 1] = fc.g;
-                        colorArr[i * 3 + 2] = fc.b;
-                        sizeArr[i] = Math.random() * 1.5 + 0.5;
-                    } else {
-                        // Vidrio → triángulos outline
-                        shapeArr[i] = Math.random() < 0.8 ? 1 : 0;
-                        const gc =
-                            glassColors[
-                                Math.floor(Math.random() * glassColors.length)
-                            ];
-                        colorArr[i * 3] = gc.r;
-                        colorArr[i * 3 + 1] = gc.g;
-                        colorArr[i * 3 + 2] = gc.b;
-                    }
-
-                    // ===== CEREBRO (position2) =====
-                    const brainMeshIdx = i % brainSamplers.length;
-                    const brainS = brainSamplers[brainMeshIdx];
-                    brainS.sample(_position, _normal);
-                    pos2Array[i * 3] = _position.x;
-                    pos2Array[i * 3 + 1] = _position.y;
-                    pos2Array[i * 3 + 2] = _position.z;
-                }
-
-                particlesGeometry.attributes.position.needsUpdate = true;
-                particlesGeometry.attributes.position2.needsUpdate = true;
-                particlesGeometry.attributes.shapeType.needsUpdate = true;
-                particlesGeometry.attributes.customColor.needsUpdate = true;
-                particlesGeometry.attributes.aSize.needsUpdate = true;
-
-                gsap.to(particleSystem.scale, {
-                    x: 1,
-                    y: 1,
-                    z: 1,
-                    duration: 1.5,
-                    ease: "power2.out",
-                });
-            })
-            .catch((e) => console.error("Error loading GLB:", e));
-
-        // ========== PARTÍCULAS DE FONDO (triángulos flotantes) ==========
+        // ========== PARTÍCULAS DE FONDO (Cargadas de Cache) ==========
         const bgParticleCount = isMobile ? 80 : 200;
         const bgPositions = new Float32Array(bgParticleCount * 3);
         const bgSizes = new Float32Array(bgParticleCount);
@@ -562,53 +358,13 @@
         const bgColors = new Float32Array(bgParticleCount * 3);
 
         const bgColorPalette = [
-            new Color(0x8b5cf6), // Púrpura
-            new Color(0xfbbf24), // Dorado
-            new Color(0x06b6d4), // Cyan
-            new Color(0xffffff), // Blanco
-            new Color(0xd946ef), // Rosa
-            new Color(0xa855f7), // Púrpura claro
+            new Color(0x8b5cf6),
+            new Color(0xfbbf24),
+            new Color(0x06b6d4),
+            new Color(0xffffff),
+            new Color(0xd946ef),
+            new Color(0xa855f7),
         ];
-
-        for (let i = 0; i < bgParticleCount; i++) {
-            bgPositions[i * 3] = (Math.random() - 0.5) * 60;
-            bgPositions[i * 3 + 1] = (Math.random() - 0.5) * 40;
-            bgPositions[i * 3 + 2] = (Math.random() - 0.5) * 60;
-
-            // Triángulos de fondo más grandes y visibles
-            const sr = Math.random();
-            if (sr < 0.2) {
-                bgSizes[i] = Math.random() * 0.5 + 0.3; // Grandes
-            } else if (sr < 0.6) {
-                bgSizes[i] = Math.random() * 0.2 + 0.1; // Medianos
-            } else {
-                bgSizes[i] = Math.random() * 0.08 + 0.03; // Pequeños
-            }
-
-            bgVelocities[i * 3] = (Math.random() - 0.5) * 0.08;
-            bgVelocities[i * 3 + 1] = (Math.random() - 0.5) * 0.06;
-            bgVelocities[i * 3 + 2] = (Math.random() - 0.5) * 0.08;
-
-            bgOpacities[i] = Math.random() * 0.6 + 0.15;
-
-            // Mayoría triángulos, algunos puntos y anillos
-            const shapeR = Math.random();
-            if (shapeR < 0.3)
-                bgShapeTypes[i] = 0; // Triángulo outline
-            else if (shapeR < 0.6)
-                bgShapeTypes[i] = 1; // Triángulo relleno
-            else if (shapeR < 0.85)
-                bgShapeTypes[i] = 2; // Punto
-            else bgShapeTypes[i] = 3; // Anillo
-
-            const bgCol =
-                bgColorPalette[
-                    Math.floor(Math.random() * bgColorPalette.length)
-                ];
-            bgColors[i * 3] = bgCol.r;
-            bgColors[i * 3 + 1] = bgCol.g;
-            bgColors[i * 3 + 2] = bgCol.b;
-        }
 
         const bgGeometry = new BufferGeometry();
         bgGeometry.setAttribute(
@@ -633,9 +389,7 @@
         const bgMaterial = new ShaderMaterial({
             vertexShader: bgVertexShader,
             fragmentShader: bgFragmentShader,
-            uniforms: {
-                uTime: { value: 0 },
-            },
+            uniforms: { uTime: { value: 0 } },
             transparent: true,
             depthWrite: false,
             blending: AdditiveBlending,
@@ -658,6 +412,7 @@
                     uProgress: { value: 0 },
                     uExplosion: { value: 0 },
                     uSizeFactor: { value: getParticleSizeFactor() },
+                    uBrainRotation: { value: 0 },
                 },
                 transparent: true,
                 depthWrite: false,
@@ -672,59 +427,225 @@
                 if (window.innerWidth < 1024) {
                     particleSystem.position.set(0, 0, 0); // Centrado verticalmente en mobile
                 } else {
-                    particleSystem.position.set(2.5, 0.4, 0); // Ajustado para centrar con el bloque de texto
+                    particleSystem.position.set(2.5, -0.2, 0); // Ajustado para centrar con el bloque de texto
                 }
             };
             setInitialPosition();
 
-            particleSystem.rotation.set(0.1, -0.15, -0.15); // Inclinada a la derecha
+            particleSystem.rotation.set(0.1, -Math.PI / 2, -0.15); // Oriented to face left
 
             scene.add(particleSystem);
 
-            // Rotación continua durante el scroll
-            gsap.to(particleSystem.rotation, {
-                y: "+=" + Math.PI * 2,
-                ease: "none",
+            const pos1Array = particlesGeometry.attributes.position
+                .array as Float32Array;
+            const pos2Array = particlesGeometry.attributes.position2
+                .array as Float32Array;
+            const shapeArr = particlesGeometry.attributes.shapeType
+                .array as Float32Array;
+            const colorArr = particlesGeometry.attributes.customColor
+                .array as Float32Array;
+            const sizeArr = particlesGeometry.attributes.aSize
+                .array as Float32Array;
+
+            // ===== Helper: Convert DOM element center to Three.js Y coordinate =====
+            function domToThreeY(el: HTMLElement): number {
+                const rect = el.getBoundingClientRect();
+                const screenY = rect.top + rect.height / 2; // Center of element in viewport
+                // Convert from screen coords (0=top, h=bottom) to NDC (-1 to +1)
+                const ndc = -(screenY / window.innerHeight) * 2 + 1;
+                // Convert NDC to world Y using camera FOV
+                const vFov = (camera.fov * Math.PI) / 180;
+                const worldY = ndc * Math.tan(vFov / 2) * camera.position.z;
+                return worldY;
+            }
+
+            // Unified Master Timeline: Total control from Hero to Footer
+            const masterTl = gsap.timeline({
                 scrollTrigger: {
                     trigger: "main",
                     start: "top top",
+                    endTrigger: "footer",
                     end: "bottom bottom",
-                    scrub: 1,
+                    scrub: 2.0, // Soft and fluid
                 },
             });
 
-            // Transición explosiva morph
-            const morphTl = gsap.timeline({
-                scrollTrigger: {
-                    trigger: "main",
-                    start: "top top",
-                    endTrigger: "#contact",
-                    end: "top center",
-                    scrub: 2,
-                },
-            });
+            // NOTE: No masterTl.set() — initial position comes from setInitialPosition()
 
-            morphTl
+            // 2. Transformation Phase (Hero -> Portfolio)
+            masterTl.to(
+                particleSystem.rotation,
+                { y: "+=" + Math.PI * 2, ease: "none" },
+                0,
+            );
+
+            masterTl
+                // Phase A: Quick explosion burst (scatter particles outward)
                 .to(
                     shaderMaterial.uniforms.uExplosion,
-                    { value: 1.5, ease: "power2.in" },
-                    0,
+                    { value: 1.5, duration: 0.15, ease: "power1.inOut" },
+                    0.05,
                 )
-                .to(
-                    particleSystem.position,
-                    { x: window.innerWidth < 1024 ? 0 : -2.5, ease: "none" },
-                    0,
-                )
+                // Phase B: Morph geometry while particles are scattered (invisible swap)
+                // Delayed so particles stay scattered through Services & WhyChooseUs
                 .to(
                     shaderMaterial.uniforms.uProgress,
-                    { value: 1.0, duration: 0.1 },
-                    0.5,
+                    { value: 1.0, duration: 0.25, ease: "none" },
+                    0.25,
                 )
+                // Phase C: Gradually collapse to reveal brain near the contact section
                 .to(
                     shaderMaterial.uniforms.uExplosion,
-                    { value: 0.0, ease: "power4.out" },
-                    0.8,
+                    { value: 0.0, duration: 0.1, ease: "power2.out" },
+                    0.82, // Delayed to 0.82 as requested
+                )
+                // Phase D: Re-explode after passing the contact form into the footer
+                .to(
+                    shaderMaterial.uniforms.uExplosion,
+                    { value: 2.0, duration: 0.04, ease: "power2.in" },
+                    0.97, // Pushed to the very end
                 );
+
+            // Self-rotation driven by scroll while in the contact section (0.8 -> 0.97)
+            // Slightly more rotation as per user request (Math.PI / 4.0)
+            masterTl.to(
+                shaderMaterial.uniforms.uBrainRotation,
+                { value: Math.PI / 4.0, duration: 0.17, ease: "power1.inOut" },
+                0.8,
+            );
+
+            // Move to left side during transformation
+            masterTl.to(
+                particleSystem.position,
+                {
+                    x: window.innerWidth < 1024 ? 0 : -2.8,
+                    ease: "power2.inOut",
+                },
+                0.15,
+            );
+
+            masterTl.to(
+                particleSystem.rotation,
+                { x: 0, z: 0, ease: "sine.inOut" },
+                0.3,
+            );
+
+            // 3. Anchoring Phase — Y movement integrated into master timeline for reversibility
+            // Calculate the contact form's target Y in Three.js coords at page load
+            const contactSection = document.querySelector(
+                "#contact",
+            ) as HTMLElement;
+
+            // Compute target Y: where the brain should be when aligned with the form
+            let contactTargetY = 0;
+            if (contactSection) {
+                const formCard = contactSection.querySelector(
+                    "[class*='backdrop-blur']",
+                ) as HTMLElement;
+                if (formCard) {
+                    contactTargetY = 0.2; // Slight offset to account for header
+                }
+            }
+
+            const initialY = window.innerWidth < 1024 ? 0 : -0.2;
+
+            // Hold Y stable during hero and services sections (0 → 0.3)
+            masterTl.to(
+                particleSystem.position,
+                { y: initialY, duration: 0.4, ease: "none" },
+                0,
+            );
+
+            // Hold Y stable during mid-scroll (WhyChooseUs, Portfolio) (0.4 → 0.75)
+            masterTl.to(
+                particleSystem.position,
+                { y: initialY, duration: 0.35, ease: "none" },
+                0.4,
+            );
+
+            // Smoothly transition Y to contact form position (0.75 → 0.9)
+            masterTl.to(
+                particleSystem.position,
+                { y: contactTargetY, duration: 0.15, ease: "power2.inOut" },
+                0.78, // Aligned with the brain construction delay
+            );
+
+            // Load from Cache
+            async function loadCache() {
+                try {
+                    const [bulbRes, brainRes, bgRes] = await Promise.all([
+                        fetch("/models/bulb_cache.json"),
+                        fetch("/models/brain_cache.json"),
+                        fetch("/models/bg_cache.json"),
+                    ]);
+                    const bulbData = await bulbRes.json();
+                    const brainData = await brainRes.json();
+                    const bgData = await bgRes.json();
+
+                    // Init Background from Cache
+                    for (let i = 0; i < bgParticleCount; i++) {
+                        const d = bgData[i % bgData.length];
+                        bgPositions[i * 3] = d.p[0];
+                        bgPositions[i * 3 + 1] = d.p[1];
+                        bgPositions[i * 3 + 2] = d.p[2];
+                        bgSizes[i] = d.s * 2.5; // Aumentado el tamaño 2.5x para mayor visibilidad
+                        bgVelocities[i * 3] = d.v[0];
+                        bgVelocities[i * 3 + 1] = d.v[1];
+                        bgVelocities[i * 3 + 2] = d.v[2];
+                        bgOpacities[i] = d.o * 0.5;
+                        bgShapeTypes[i] = d.t;
+                        const c = bgColorPalette[d.c];
+                        bgColors[i * 3] = c.r;
+                        bgColors[i * 3 + 1] = c.g;
+                        bgColors[i * 3 + 2] = c.b;
+                    }
+                    bgGeometry.attributes.position.needsUpdate = true;
+                    bgGeometry.attributes.aSize.needsUpdate = true;
+                    bgGeometry.attributes.aVelocity.needsUpdate = true;
+                    bgGeometry.attributes.aOpacity.needsUpdate = true;
+                    bgGeometry.attributes.aShapeType.needsUpdate = true;
+                    bgGeometry.attributes.aColor.needsUpdate = true;
+
+                    // Init Models from Cache
+                    for (let i = 0; i < particleCount; i++) {
+                        const bP = bulbData[i % bulbData.length];
+                        const brP = brainData[i % brainData.length];
+                        pos1Array[i * 3] = bP.p[0];
+                        pos1Array[i * 3 + 1] = bP.p[1];
+                        pos1Array[i * 3 + 2] = bP.p[2];
+                        pos2Array[i * 3] = brP.p[0];
+                        pos2Array[i * 3 + 1] = brP.p[1];
+                        pos2Array[i * 3 + 2] = brP.p[2];
+                        shapeArr[i] = bP.s;
+                        const palette =
+                            partColorPalette[bP.c] || partColorPalette[0];
+                        const col =
+                            palette[Math.floor(Math.random() * palette.length)];
+                        colorArr[i * 3] = col.r;
+                        colorArr[i * 3 + 1] = col.g;
+                        colorArr[i * 3 + 2] = col.b;
+                        sizeArr[i] = bP.m * (Math.random() * 0.5 + 0.5);
+                    }
+
+                    particlesGeometry.attributes.position.needsUpdate = true;
+                    particlesGeometry.attributes.position2.needsUpdate = true;
+                    particlesGeometry.attributes.shapeType.needsUpdate = true;
+                    particlesGeometry.attributes.customColor.needsUpdate = true;
+                    particlesGeometry.attributes.aSize.needsUpdate = true;
+
+                    gsap.to(particleSystem.scale, {
+                        x: 1,
+                        y: 1,
+                        z: 1,
+                        duration: 1.2,
+                        ease: "power2.out",
+                    });
+                } catch (e) {
+                    console.error("Error loading point cache:", e);
+                }
+            }
+
+            loadCache();
 
             const clock = new Clock();
             function animate() {
