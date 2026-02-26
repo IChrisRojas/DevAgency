@@ -16,43 +16,43 @@ const iconMap: Record<string, any> = {
 <section id="services" class="py-24 bg-transparent relative">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div
-            class="text-center max-w-2xl mx-auto mb-16 scroll-reveal"
+            class="text-left max-w-4xl mb-24 scroll-reveal glass-text-protection"
             style="opacity: 0; transform: translateY(40px);"
         >
-            <h2
-                class="text-sm font-semibold text-dev-accent tracking-wide uppercase"
-            >
-                Capacidades
-            </h2>
+            <h2 class="label-mono text-dev-accent mb-4">CAPACIDADES</h2>
             <p
-                class="mt-2 text-3xl leading-8 font-extrabold tracking-tight text-white sm:text-4xl"
+                class="mt-2 text-6xl font-extrabold tracking-tighter text-white sm:text-7xl text-shadow-strong text-wrap-balance leading-[0.9]"
             >
-                Experiencia que conecta los puntos
+                DISEÑADO PARA <br /> <span class="text-white">EL RENDIMIENTO</span>
             </p>
-            <p class="mt-4 max-w-2xl text-xl text-slate-400 mx-auto">
-                Especializados en la construcción de sistemas robustos e integraciones
-                inteligentes que trabajan juntos detrás de escena.
+            <p class="mt-8 max-w-2xl text-xl text-slate-300 text-shadow-subtle text-pretty">
+                Ingeniería de software de alto impacto. Sistemas robustos e integraciones inteligentes que redefinen los límites de lo posible.
             </p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-6 gap-6 relative">
             {
                 services.map((service, index) => {
                     const Icon = iconMap[service.data.icon] || Code;
+                    const isWide = index === 0 || index === 3;
                     return (
                         <div
-                            class="service-card rounded-2xl p-8 bg-slate-900/40 border border-white/10 backdrop-blur-sm hover:border-dev-accent/50 hover:shadow-xl hover:shadow-dev-accent/10 transition-all duration-300 transform hover:-translate-y-1 group"
+                            class={`service-card laser-border rounded-none p-10 bg-white/[0.03] backdrop-blur-xl transition-all duration-500 transform group cursor-default hover:scale-[1.03] hover:shadow-[inset_0_0_20px_rgba(139,92,246,0.15)] hover:backdrop-blur-md ${isWide ? 'md:col-span-4' : 'md:col-span-2'}`}
                             style="opacity: 0; transform: translateY(40px);"
                         >
-                            <div class="w-12 h-12 bg-slate-800 rounded-xl shadow-sm border border-slate-700 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                                <Icon className="w-6 h-6 text-dev-accent" />
+                            <div class="w-16 h-16 bg-dev-accent text-white rounded-none border border-white/5 flex items-center justify-center mb-10 transition-all duration-500">
+                                <Icon className="w-8 h-8 text-white service-icon transition-colors duration-500" aria-hidden="true" />
                             </div>
-                            <h3 class="text-xl font-semibold text-white mb-3">
+                            <h3 class="text-3xl font-extrabold text-white mb-4 text-shadow-subtle tracking-tighter">
                                 {service.data.title}
                             </h3>
-                            <p class="text-slate-400 leading-relaxed font-light">
+                            <p class="text-slate-300 leading-relaxed font-normal text-pretty text-shadow-subtle">
                                 {service.data.description}
                             </p>
+                            
+                            <div class="absolute top-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                                <div class="w-2 h-2 rounded-full bg-dev-accent animate-ping" />
+                            </div>
                         </div>
                     );
                 })
@@ -68,6 +68,18 @@ const iconMap: Record<string, any> = {
     gsap.registerPlugin(ScrollTrigger);
 
     document.addEventListener("DOMContentLoaded", () => {
+        // Mouse tracking for laser borders
+        const cards = document.querySelectorAll('.service-card') as NodeListOf<HTMLElement>;
+        document.addEventListener('mousemove', (e) => {
+            cards.forEach(card => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                card.style.setProperty('--mouse-x', `${x}px`);
+                card.style.setProperty('--mouse-y', `${y}px`);
+            });
+        });
+
         // Reveal header
         gsap.to(".scroll-reveal", {
             scrollTrigger: {
@@ -78,7 +90,7 @@ const iconMap: Record<string, any> = {
             opacity: 1,
             y: 0,
             duration: 0.8,
-            ease: "power2.out",
+            ease: "power4.out",
             force3D: true
         });
 
@@ -91,10 +103,21 @@ const iconMap: Record<string, any> = {
             },
             opacity: 1,
             y: 0,
-            duration: 0.8,
-            stagger: 0.15,
-            ease: "power2.out",
+            duration: 1.2,
+            stagger: 0.2,
+            ease: "power4.out",
             force3D: true
+        });
+
+        // Icon Kinetic Depth Animation
+        document.querySelectorAll('.service-card').forEach(card => {
+            const icon = card.querySelector('.service-icon');
+            card.addEventListener('mouseenter', () => {
+                gsap.to(icon, { y: -5, duration: 0.3, ease: "power2.out" });
+            });
+            card.addEventListener('mouseleave', () => {
+                gsap.to(icon, { y: 0, duration: 0.3, ease: "power2.in" });
+            });
         });
     });
 </script>
