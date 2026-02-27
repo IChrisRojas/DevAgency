@@ -1,0 +1,57 @@
+---
+// src/components/TransitionSection.astro
+---
+
+<section
+    id="transition-logic"
+    class="lg:hidden min-h-[100vh] flex items-center justify-center relative overflow-hidden bg-transparent py-24"
+>
+    <div class="max-w-4xl mx-auto px-6 text-center z-10 glass-text-protection">
+        <div
+            class="transition-content"
+            style="opacity: 0; transform: translateY(30px);"
+        >
+            <h2 class="label-mono text-dev-accent mb-6 uppercase">FILOSOFÍA</h2>
+            <p
+                class="text-6xl md:text-7xl font-extrabold tracking-tighter text-white leading-none md:leading-[0.85] mb-12 text-shadow-strong"
+            >
+                INGENIERÍA <br />
+                QUE COBRA <span class="text-dev-accent">VIDA</span>
+            </p>
+            <div
+                class="h-[2px] w-12 bg-dev-accent mx-auto mb-12 shadow-[0_0_15px_rgba(139,92,246,0.5)]"
+            >
+            </div>
+            <p
+                class="text-xl text-slate-300 font-normal max-w-xl mx-auto leading-relaxed text-pretty text-shadow-subtle"
+            >
+                Fusionamos precisión técnica y visión creativa para materializar
+                ecosistemas digitales que desafían lo convencional.
+            </p>
+        </div>
+    </div>
+</section>
+
+<script>
+    import gsap from "gsap";
+    import ScrollTrigger from "gsap/ScrollTrigger";
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    document.addEventListener("DOMContentLoaded", () => {
+        gsap.to(".transition-content", {
+            scrollTrigger: {
+                trigger: "#transition-logic",
+                start: "top 70%",
+                end: "bottom 30%",
+                toggleActions: "play reverse play reverse",
+            },
+            opacity: 1,
+            y: 0,
+            duration: 1.2,
+            ease: "power3.out",
+        });
+    });
+</script>
+
+<style></style>

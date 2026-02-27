@@ -4,7 +4,8 @@
 
 <canvas
     id="webgl-canvas"
-    class="fixed top-0 left-0 w-full h-full -z-10 pointer-events-none"></canvas>
+    class="fixed top-0 left-0 w-full h-screen -z-10 pointer-events-none"
+></canvas>
 
 <script>
     import {
@@ -35,6 +36,7 @@
   uniform float uExplosion;
   uniform float uSizeFactor;
   uniform float uBrainRotation;
+  uniform float uInitialRotation;
   
   attribute vec3 position2;
   attribute vec3 aDirection;
@@ -64,10 +66,10 @@
       mixedPosition += pseudoNormal * noise;
 
       // Brain self-rotation when constructed
-      // Driven by scroll via uBrainRotation
+      // Driven by scroll via uBrainRotation, with an uInitialRotation offset
       float rotIntensity = (1.0 - smoothstep(0.0, 0.5, uExplosion)) * smoothstep(0.5, 1.0, uProgress);
       if (rotIntensity > 0.01) {
-          float angle = uBrainRotation * rotIntensity;
+          float angle = (uInitialRotation + uBrainRotation) * rotIntensity;
           float s = sin(angle);
           float c = cos(angle);
           mat2 rotMat = mat2(c, -s, s, c);
@@ -98,6 +100,8 @@
   varying float vShapeType;
   varying float vOpacity;
   varying float vRandomOffset;
+  uniform float uBrightness;
+  uniform float uGlobalOpacity;
 
   float sdTriangle(vec2 p, float r) {
       float k = sqrt(3.0);
@@ -161,14 +165,12 @@
 
       if (alpha < 0.01) discard;
 
-      float interiorGlow = pow(vOpacity, 2.0) * 2.5;
+      float interiorGlow = pow(vOpacity, 2.0) * uBrightness;
       vec3 finalColor = vColor * colorMod * max(1.0, interiorGlow);
       
-      gl_FragColor = vec4(finalColor, alpha * vOpacity);
+      gl_FragColor = vec4(finalColor, alpha * vOpacity * uGlobalOpacity);
   }
-
-
-  `;
+`;
 
     // ========== SHADERS PARTÍCULAS DE FONDO ==========
     const bgVertexShader = `
@@ -252,18 +254,23 @@
         const scene = new Scene();
         scene.fog = new FogExp2(0x000000, 0.025);
 
-        const camera = new PerspectiveCamera(
-            75,
-            window.innerWidth / window.innerHeight,
-            0.1,
-            1000,
-        );
-        camera.position.z = 5;
-
         const isMobile =
             /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
                 navigator.userAgent,
             );
+
+        const getViewportHeight = () =>
+            isMobile ? window.screen.height : window.innerHeight;
+        let currentHeight = getViewportHeight();
+        let lastWidth = window.innerWidth;
+
+        const camera = new PerspectiveCamera(
+            75,
+            window.innerWidth / currentHeight,
+            0.1,
+            1000,
+        );
+        camera.position.z = 5;
 
         const renderer = new WebGLRenderer({
             canvas,
@@ -271,7 +278,7 @@
             antialias: true,
             powerPreference: "high-performance",
         });
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize(window.innerWidth, currentHeight);
         // Cap pixel ratio to 1.5 on mobile to save GPU fill rate
         const pixelRatio = isMobile
             ? Math.min(window.devicePixelRatio, 1.5)
@@ -296,7 +303,7 @@
         }
 
         // ========== PARTÍCULAS DEL MODELO (menor densidad para que se aprecie la forma nítida) ==========
-        const particleCount = isMobile ? 1000 : 4000;
+        const particleCount = isMobile ? 1800 : 4000;
 
         const positions1 = new Float32Array(particleCount * 3);
         const positions2 = new Float32Array(particleCount * 3);
@@ -410,7 +417,7 @@
         // ========== SISTEMA DE PARTÍCULAS DE MODELOS ==========
         if (vertexShader && fragmentShader) {
             const getParticleSizeFactor = () =>
-                window.innerWidth < 1024 ? 60.0 : 50.0; // Increased base sizes for better visibility
+                window.innerWidth < 1024 ? 69.0 : 50.0; // Reduced by 8% for the perfect fit on mobile
 
             const shaderMaterial = new ShaderMaterial({
                 vertexShader: vertexShader,
@@ -421,6 +428,9 @@
                     uExplosion: { value: 0 },
                     uSizeFactor: { value: getParticleSizeFactor() },
                     uBrainRotation: { value: 0 },
+                    uInitialRotation: { value: isMobile ? Math.PI / 2.0 : 0 },
+                    uBrightness: { value: isMobile ? 3.2 : 2.5 },
+                    uGlobalOpacity: { value: 1.0 },
                 },
                 transparent: true,
                 depthWrite: false,
@@ -433,7 +443,7 @@
 
             const setInitialPosition = () => {
                 if (window.innerWidth < 1024) {
-                    particleSystem.position.set(0, 0, 0); // Centrado verticalmente en mobile
+                    particleSystem.position.set(0, 0.5, 0); // Lowered slightly more to center it better on mobile screens
                 } else {
                     particleSystem.position.set(2.5, -0.2, 0); // Ajustado para centrar con el bloque de texto
                 }
@@ -474,7 +484,7 @@
                     start: "top top",
                     endTrigger: "footer",
                     end: "bottom bottom",
-                    scrub: isMobile ? 1.0 : 2.0, // Tighter tracking on mobile for responsive brain reveal
+                    scrub: 2.0, // Soft and fluid
                 },
             });
 
@@ -488,52 +498,45 @@
                 0,
             );
 
-            masterTl.to(
-                particleSystem.rotation,
-                { y: "+=" + Math.PI * 4, ease: "none", duration: 1.01 },
-                0,
-            );
-
             if (isMobile) {
                 // MOBILE TIMELINE
                 // Brain must be FULLY constructed BEFORE the contact form appears.
                 // The #mobile-brain-space spacer sits between Portfolio (~0.55-0.65) and Contact (~0.85+).
                 // So we need construction done by ~0.60 and explosion at ~0.88.
                 masterTl
-                    // Phase A: Initial explosion burst — starts from 0 to avoid jump on first scroll
+                    // Phase A: Initial explosion burst (early, during hero->services scroll)
                     .to(
                         shaderMaterial.uniforms.uExplosion,
-                        { value: 1.5, duration: 0.15, ease: "power2.out" },
-                        0.0,
+                        { value: 1.5, duration: 0.2, ease: "power1.inOut" },
+                        0.05,
                     )
-                    // Phase B: Morph into brain shape (during services/whychooseus)
+                    // Phase B: Morph into brain shape (earlier — during services/whychooseus)
                     .to(
                         shaderMaterial.uniforms.uProgress,
                         { value: 1.0, duration: 0.25, ease: "power1.inOut" },
                         0.1,
                     )
-                    // Phase C: Collapse to reveal brain — during portfolio section
-                    // Portfolio starts at ~0.56, so collapse 0.45→0.60 ensures brain visible by mid-portfolio
+                    // Phase C: Collapse to reveal brain — happens in the Transition Section
                     .to(
                         shaderMaterial.uniforms.uExplosion,
                         { value: 0.0, duration: 0.15, ease: "power2.out" },
-                        0.45,
+                        0.65,
                     )
-                    // Self-rotation while fully constructed (during portfolio cards)
+                    // Self-rotation while fully constructed (in the Transition Section zone)
                     .to(
                         shaderMaterial.uniforms.uBrainRotation,
                         {
-                            value: Math.PI / 3.0,
-                            duration: 0.3,
+                            value: Math.PI / 8.0, // Subtler (approx 22.5°) for mobile smoothing
+                            duration: 0.4, // Longer duration for extra smoothness
                             ease: "power1.inOut",
                         },
-                        0.55,
+                        0.7,
                     )
                     // Phase D: Re-explode when hitting the Contact Form
                     .to(
                         shaderMaterial.uniforms.uExplosion,
                         { value: 2.0, duration: 0.05, ease: "power2.in" },
-                        0.88,
+                        0.92,
                     );
             } else {
                 // DESKTOP TIMELINE (Original Logic)
@@ -588,8 +591,8 @@
             );
 
             // 3. Anchoring Phase — Y movement integrated into master timeline for reversibility
-            const initialY = isMobile ? 0 : -0.2;
-            let contactTargetY = isMobile ? -0.8 : 0.2; // Move lower (-0.8) on mobile to drop entirely into the empty space area
+            const initialY = isMobile ? 0.5 : -0.2;
+            let contactTargetY = isMobile ? 0.2 : 0.2; // Move slightly higher to avoid form collision
 
             // Hold Y stable during hero and services sections (0 → 0.3)
             masterTl.to(
@@ -605,12 +608,11 @@
                 0.4,
             );
 
-            // Smoothly transition Y to anchor during portfolio section
-            // On mobile: start moving at 0.50 (just before portfolio at 0.56)
+            // Smoothly transition Y to drop down into the transition section (0.65 -> 0.80)
             masterTl.to(
                 particleSystem.position,
-                { y: contactTargetY, duration: 0.2, ease: "power2.inOut" },
-                isMobile ? 0.5 : 0.78,
+                { y: contactTargetY, duration: 0.15, ease: "power2.inOut" },
+                isMobile ? 0.65 : 0.78, // Start moving earlier on mobile to track with the transition section entry
             );
 
             // Load from Cache
@@ -676,9 +678,13 @@
                     particlesGeometry.attributes.customColor.needsUpdate = true;
                     particlesGeometry.attributes.aSize.needsUpdate = true;
 
-                    // Set scale immediately — the explosion already starts scattered
-                    // so there's no need for a separate scale-in animation that conflicts
-                    particleSystem.scale.set(1, 1, 1);
+                    gsap.to(particleSystem.scale, {
+                        x: isMobile ? 0.85 : 1,
+                        y: isMobile ? 0.85 : 1,
+                        z: isMobile ? 0.85 : 1,
+                        duration: 1.2,
+                        ease: "power2.out",
+                    });
                 } catch (e) {
                     console.error("Error loading point cache:", e);
                 }
@@ -700,10 +706,16 @@
             window.addEventListener("resize", () => {
                 clearTimeout(resizeTimeout);
                 resizeTimeout = setTimeout(() => {
-                    camera.aspect = window.innerWidth / window.innerHeight;
+                    if (isMobile && window.innerWidth === lastWidth) {
+                        return; // Omitir resize solo de altura en mobile
+                    }
+                    lastWidth = window.innerWidth;
+                    currentHeight = getViewportHeight();
+
+                    camera.aspect = window.innerWidth / currentHeight;
                     camera.updateProjectionMatrix();
-                    renderer.setSize(window.innerWidth, window.innerHeight);
-                    composer.setSize(window.innerWidth, window.innerHeight);
+                    renderer.setSize(window.innerWidth, currentHeight);
+                    composer.setSize(window.innerWidth, currentHeight);
                     shaderMaterial.uniforms.uSizeFactor.value =
                         getParticleSizeFactor();
                     setInitialPosition();

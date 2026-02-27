@@ -7,6 +7,7 @@ import WhyChooseUs from "../components/WhyChooseUs.astro";
 import Portfolio from "../components/Portfolio.astro";
 import ContactForm from "../components/ContactForm.tsx";
 import Footer from "../components/Footer.astro";
+import TransitionSection from "../components/TransitionSection.astro";
 ---
 
 <Layout title="DevAgency | Desarrollo de Soluciones Informáticas">
@@ -21,12 +22,7 @@ import Footer from "../components/Footer.astro";
 
 		<Portfolio />
 
-		<!-- Mobile-only spacer to allow the Brain model to construct before reaching the contact form -->
-		<div
-			id="mobile-brain-space"
-			class="block lg:hidden h-[60vh] w-full relative z-0"
-		>
-		</div>
+		<TransitionSection />
 
 		<ContactForm client:visible />
 	</main>

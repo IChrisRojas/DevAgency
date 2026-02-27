@@ -1,20 +1,9 @@
 [
     {
-        "id": "dr-spass",
-        "title": "Dr. Spass",
-        "description": "Plataforma web desarrollada para Dr. Spass.",
-        "image": "/images/drspass-placeholder.jpg",
-        "tags": [
-            "Desarrollo Web",
-            "Plataforma"
-        ],
-        "link": "https://drspass.cl"
-    },
-    {
         "id": "house-of-ravers",
         "title": "House of Ravers",
         "description": "Desarrollo de plataforma web para House of Ravers.",
-        "image": "/images/houseofravers-placeholder.jpg",
+        "image": "/images/houseofravers-thumb.png",
         "tags": [
             "Desarrollo Web",
             "E-commerce"
