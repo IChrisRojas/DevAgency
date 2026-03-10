@@ -24,19 +24,35 @@ export default function ContactForm() {
         return () => observer.disconnect();
     }, []);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setFormState('submitting');
 
-        // Simulate API call
-        setTimeout(() => {
-            setFormState('success');
-            setTimeout(() => setFormState('idle'), 5000); // Reset after 5s
-        }, 1500);
+        const formData = new FormData(e.currentTarget);
+        
+        try {
+            const response = await fetch('/api/contact', {
+                method: 'POST',
+                body: formData,
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                setFormState('success');
+                setTimeout(() => setFormState('idle'), 5000);
+            } else {
+                setFormState('idle');
+                alert('Error sending message. Please try again.');
+            }
+        } catch (error) {
+            setFormState('idle');
+            alert('Error sending message. Please try again.');
+        }
     };
 
     return (
-        <section id="contact" className="py-24 bg-transparent relative overflow-hidden">
+        <section id="contact" className="py-24 bg-transparent relative overflow-hidden" style={{ scrollMarginTop: '80px' }}>
             {/* Decorative blurry blobs - aligned with Portfolio bottom */}
             <div className="hidden lg:block absolute top-0 right-0 -translate-y-1/2 translate-x-1/4 pointer-events-none">
                 <div className="w-[600px] h-[600px] bg-dev-accent/15 rounded-full blur-[120px]" />
@@ -65,6 +81,8 @@ export default function ContactForm() {
                                     <input
                                         type="text"
                                         id="name"
+                                        name="name"
+                                        autoComplete="name"
                                         required
                                         className="w-full px-4 py-3 rounded-xl border border-white/10 bg-slate-800 text-white placeholder:text-slate-500 focus:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-dev-accent/50 focus:border-dev-accent transition-colors"
                                         placeholder="Juan Pérez"
@@ -75,6 +93,8 @@ export default function ContactForm() {
                                     <input
                                         type="email"
                                         id="email"
+                                        name="email"
+                                        autoComplete="email"
                                         required
                                         className="w-full px-4 py-3 rounded-xl border border-white/10 bg-slate-800 text-white placeholder:text-slate-500 focus:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-dev-accent/50 focus:border-dev-accent transition-colors"
                                         placeholder="juan@ejemplo.com"
@@ -86,10 +106,23 @@ export default function ContactForm() {
                                 <label htmlFor="message" className="block text-sm font-medium text-slate-300 mb-1">Detalles del Proyecto</label>
                                 <textarea
                                     id="message"
+                                    name="message"
                                     rows={4}
                                     required
                                     className="w-full px-4 py-3 rounded-xl border border-white/10 bg-slate-800 text-white placeholder:text-slate-500 focus:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-dev-accent/50 focus:border-dev-accent transition-colors resize-none"
                                     placeholder="Cuéntanos sobre tus objetivos..."
+                                />
+                            </div>
+
+                            {/* Honeypot field for bot detection */}
+                            <div className="hidden" aria-hidden="true">
+                                <label htmlFor="bot-field">No completar este campo</label>
+                                <input
+                                    type="text"
+                                    id="bot-field"
+                                    name="bot-field"
+                                    tabIndex={-1}
+                                    autoComplete="off"
                                 />
                             </div>
 

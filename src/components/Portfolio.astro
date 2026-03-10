@@ -6,7 +6,7 @@ import { ArrowUpRight } from "lucide-react";
 const projects = await getCollection("projects");
 ---
 
-<section id="portfolio" class="py-24 bg-transparent relative overflow-hidden">
+<section id="portfolio" class="py-24 bg-transparent relative overflow-hidden" style="scroll-margin-top: 80px;">
     <!-- Decorative transition blob -->
     <div
         class="hidden lg:block absolute bottom-0 right-0 translate-y-1/2 translate-x-1/4 pointer-events-none z-0"
@@ -50,7 +50,7 @@ const projects = await getCollection("projects");
                 projects.map((project, index) => (
                     <a
                         href={project.data.link || "#"}
-                        class={`project-card group cursor-pointer ${project.id === "house-of-ravers" ? "block" : "hidden md:block"}`}
+                        class={`project-card group cursor-pointer block`}
                         style="opacity: 0; transform: translateY(40px);"
                     >
                         <div class="relative overflow-hidden rounded-none bg-white/[0.03] backdrop-blur-sm aspect-[4/5] mb-8 border border-white/5 group-hover:border-dev-accent/30 transition-all duration-700">
@@ -92,6 +92,14 @@ const projects = await getCollection("projects");
     gsap.registerPlugin(ScrollTrigger);
 
     document.addEventListener("DOMContentLoaded", () => {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            document.querySelectorAll('.portfolio-reveal, .project-card').forEach(el => {
+                (el as HTMLElement).style.opacity = '1';
+                (el as HTMLElement).style.transform = 'none';
+            });
+            return;
+        }
+
         const tl = gsap.timeline({
             scrollTrigger: {
                 trigger: "#portfolio",

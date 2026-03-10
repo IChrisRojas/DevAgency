@@ -11,10 +11,21 @@
         "link": "https://www.houseofravers.cl"
     },
     {
+        "id": "drspass",
+        "title": "drspass.cl",
+        "description": "Plataforma de gestión de contraseñas segura con IA",
+        "image": "/images/drspass-thumb.png",
+        "tags": [
+            "Seguridad",
+            "IA"
+        ],
+        "link": "https://drspass.cl"
+    },
+    {
         "id": "project-placeholder",
         "title": "Proyecto en Desarrollo",
         "description": "Próximamente revelaremos más de nuestros casos de éxito.",
-        "image": "/images/project-3.jpg",
+        "image": "/images/project-3.svg",
         "tags": [
             "Innovación",
             "Tecnología"

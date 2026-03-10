@@ -1,7 +1,7 @@
 ---
 // src/components/Services.astro
 import { getCollection } from "astro:content";
-import { Code, Monitor, Smartphone, Lightbulb } from "lucide-react";
+import { Code, Monitor, Smartphone, Lightbulb, Sparkles, Zap, MessageSquare } from "lucide-react";
 
 const services = await getCollection("services");
 
@@ -10,10 +10,13 @@ const iconMap: Record<string, any> = {
     Monitor,
     Smartphone,
     Lightbulb,
+    Sparkles,
+    Zap,
+    MessageSquare,
 };
 ---
 
-<section id="services" class="py-24 bg-transparent relative">
+<section id="services" class="py-24 bg-transparent relative" style="scroll-margin-top: 80px;">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div
             class="text-left max-w-4xl mb-24 scroll-reveal glass-text-protection"
@@ -68,6 +71,14 @@ const iconMap: Record<string, any> = {
     gsap.registerPlugin(ScrollTrigger);
 
     document.addEventListener("DOMContentLoaded", () => {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            document.querySelectorAll('.scroll-reveal, .service-card').forEach(el => {
+                (el as HTMLElement).style.opacity = '1';
+                (el as HTMLElement).style.transform = 'none';
+            });
+            return;
+        }
+
         // Mouse tracking for laser borders
         const cards = document.querySelectorAll('.service-card') as NodeListOf<HTMLElement>;
         document.addEventListener('mousemove', (e) => {

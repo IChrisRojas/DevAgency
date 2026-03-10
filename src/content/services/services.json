@@ -1,26 +1,26 @@
 [
   {
+    "id": "ai-consulting",
+    "title": "AI Consulting",
+    "description": "Consultoría especializada en estrategia e implementación de inteligencia artificial para transformar tu negocio.",
+    "icon": "Sparkles"
+  },
+  {
+    "id": "automation",
+    "title": "Automatización",
+    "description": "Automatizamos procesos de negocio con IA, reduciendo costos y aumentando eficiencia operativa.",
+    "icon": "Zap"
+  },
+  {
+    "id": "chatbots",
+    "title": "Chatbots",
+    "description": "Asistentes virtuales inteligentes personalizados para atención al cliente 24/7.",
+    "icon": "MessageSquare"
+  },
+  {
     "id": "custom-software",
     "title": "Ingeniería de Software",
     "description": "Construimos sistemas robustos y escalables de grado de producción, diseñados para soportar el crecimiento de tu infraestructura.",
     "icon": "Code"
-  },
-  {
-    "id": "web-development",
-    "title": "Web Apps",
-    "description": "Plataformas web de alto rendimiento con arquitecturas modernas y optimizadas para la conversión.",
-    "icon": "Monitor"
-  },
-  {
-    "id": "tech-consulting",
-    "title": "Estrategia IT",
-    "description": "Consultoría técnica especializada para optimizar procesos y guiar la evolución tecnológica de tu empresa.",
-    "icon": "Lightbulb"
-  },
-  {
-    "id": "app-development",
-    "title": "Soluciones Mobile Nativas",
-    "description": "Diseñamos experiencias móviles de alta fidelidad que conectan con tus usuarios en cualquier dispositivo.",
-    "icon": "Smartphone"
   }
 ]

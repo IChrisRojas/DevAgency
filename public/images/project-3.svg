@@ -1,0 +1,31 @@
+<svg width="800" height="1000" viewBox="0 0 800 1000" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="1000" fill="#0f0f0f"/>
+  <rect x="0" y="0" width="800" height="1000" fill="url(#gradient)"/>
+  
+  <!-- Grid pattern -->
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f0f0f"/>
+      <stop offset="100%" stop-color="#1a1a2e"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#8b5cf6" stroke-width="0.5" opacity="0.1"/>
+    </pattern>
+  </defs>
+  <rect width="800" height="1000" fill="url(#grid)"/>
+  
+  <!-- Central icon -->
+  <circle cx="400" cy="450" r="80" fill="#8b5cf6" fill-opacity="0.1" stroke="#8b5cf6" stroke-width="2"/>
+  <path d="M380 450 L395 465 L420 435" stroke="#8b5cf6" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="400" cy="450" r="15" fill="#8b5cf6" fill-opacity="0.3"/>
+  
+  <!-- Text -->
+  <text x="400" y="600" text-anchor="middle" fill="#ffffff" font-family="system-ui, sans-serif" font-size="28" font-weight="600" letter-spacing="0.1em">PRÓXIMAMENTE</text>
+  <text x="400" y="640" text-anchor="middle" fill="#8b5cf6" font-family="system-ui, sans-serif" font-size="16" font-weight="400" letter-spacing="0.05em">PROYECTO EN DESARROLLO</text>
+  
+  <!-- Decorative elements -->
+  <circle cx="100" cy="150" r="3" fill="#8b5cf6" fill-opacity="0.5"/>
+  <circle cx="700" cy="200" r="2" fill="#8b5cf6" fill-opacity="0.3"/>
+  <circle cx="150" cy="800" r="2" fill="#8b5cf6" fill-opacity="0.4"/>
+  <circle cx="650" cy="850" r="3" fill="#8b5cf6" fill-opacity="0.5"/>
+</svg>
