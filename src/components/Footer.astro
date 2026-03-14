@@ -11,42 +11,51 @@ const year = new Date().getFullYear();
             <div class="col-span-1 md:col-span-2">
                 <a
                     href="/"
-                    class="text-2xl font-bold text-white mb-4 inline-block"
+                    class="flex items-center gap-0 group mb-4 w-fit select-none"
+                    aria-label="SolucionAI"
                 >
-                    aisolucion.cl
+                    <span class="w-[3px] h-6 bg-dev-accent mr-2.5 shrink-0" aria-hidden="true"></span>
+                    <span
+                        class="font-[family-name:var(--font-rajdhani)] font-black text-[1.35rem] tracking-[0.18em] uppercase leading-none"
+                        style="text-shadow: 0 0 18px rgba(139,92,246,0.5), 0 0 40px rgba(139,92,246,0.25); color: #a78bfa;"
+                    >SOLUCION</span>
+                    <span
+                        class="font-[family-name:var(--font-rajdhani)] font-black text-[1.35rem] uppercase leading-none ml-[2px] px-[5px] py-[1px] border border-dev-accent/60 text-white"
+                        style="letter-spacing: 0.14em;"
+                    >AI</span>
                 </a>
                 <p class="text-slate-300 max-w-sm mt-2">
-                    Transformamos ideas en soluciones digitales. Desarrollo de
-                    software a medida, aplicaciones y plataformas web para el
-                    futuro de tu negocio.
+                    Construimos el futuro con código inteligente. Desarrollo de
+                    software de alto impacto y soluciones de IA que transforman
+                    negocios.
                 </p>
             </div>
             <div>
                 <h3
                     class="text-sm font-semibold text-white tracking-wider uppercase mb-4"
                 >
-                    Compañía
+                    Expertise
                 </h3>
                 <ul class="space-y-3">
                     <li>
                         <a
                             href="#services"
                             class="hover:text-dev-accent transition-colors"
-                            >Servicios</a
+                            >Desarrollo Web</a
+                        >
+                    </li>
+                    <li>
+                        <a
+                            href="#services"
+                            class="hover:text-dev-accent transition-colors"
+                            >IA & Machine Learning</a
                         >
                     </li>
                     <li>
                         <a
                             href="#portfolio"
                             class="hover:text-dev-accent transition-colors"
-                            >Portafolio</a
-                        >
-                    </li>
-                    <li>
-                        <a
-                            href="#why-us"
-                            class="hover:text-dev-accent transition-colors"
-                            >Por qué Elegirnos</a
+                            >Proyectos</a
                         >
                     </li>
                 </ul>
@@ -55,7 +64,7 @@ const year = new Date().getFullYear();
                 <h3
                     class="text-sm font-semibold text-white tracking-wider uppercase mb-4"
                 >
-                    Conectar
+                    Conectemos
                 </h3>
                 <ul class="space-y-3">
                     <li>
@@ -85,7 +94,7 @@ const year = new Date().getFullYear();
         <div
             class="mt-0 md:mt-12 pt-0 md:pt-8 border-t-0 md:border-t border-white/10 text-center text-xs md:text-sm text-slate-400"
         >
-            &copy; {year} aisolucion.cl. Todos los derechos reservados.
+            &copy; {year} solucionAI. Todos los derechos reservados.
         </div>
     </div>
 </footer>

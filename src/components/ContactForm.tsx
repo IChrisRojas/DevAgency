@@ -77,7 +77,7 @@ export default function ContactForm() {
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
-                                    <label htmlFor="name" className="block text-sm font-medium text-slate-300 mb-1">Nombre</label>
+                                    <label htmlFor="name" className="block text-sm font-semibold text-slate-300 mb-1">Nombre</label>
                                     <input
                                         type="text"
                                         id="name"
@@ -89,7 +89,7 @@ export default function ContactForm() {
                                     />
                                 </div>
                                 <div>
-                                    <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-1">Correo Electrónico</label>
+                                    <label htmlFor="email" className="block text-sm font-semibold text-slate-300 mb-1">Correo Electrónico</label>
                                     <input
                                         type="email"
                                         id="email"
@@ -103,7 +103,7 @@ export default function ContactForm() {
                             </div>
 
                             <div>
-                                <label htmlFor="message" className="block text-sm font-medium text-slate-300 mb-1">Detalles del Proyecto</label>
+                                <label htmlFor="message" className="block text-sm font-semibold text-slate-300 mb-1">Detalles del Proyecto</label>
                                 <textarea
                                     id="message"
                                     name="message"
@@ -129,7 +129,7 @@ export default function ContactForm() {
                             <button
                                 type="submit"
                                 disabled={formState !== 'idle'}
-                                className="w-full relative h-[60px] flex items-center justify-center px-8 py-4 bg-dev-accent hover:bg-violet-600 text-white font-medium rounded-xl shadow-lg shadow-dev-accent/20 hover:shadow-dev-accent/40 transition-all duration-300 disabled:opacity-80 disabled:cursor-not-allowed group overflow-hidden"
+                                className="w-full relative h-[60px] flex items-center justify-center px-8 py-4 bg-dev-accent hover:bg-violet-600 text-white font-semibold rounded-xl shadow-lg shadow-dev-accent/20 hover:shadow-dev-accent/40 transition-all duration-300 disabled:opacity-80 disabled:cursor-not-allowed group overflow-hidden"
                             >
                                 <div className="relative w-full h-full flex items-center justify-center">
                                     {formState === 'idle' && (

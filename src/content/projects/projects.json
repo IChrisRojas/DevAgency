@@ -4,6 +4,7 @@
         "title": "House of Ravers",
         "description": "Desarrollo de plataforma web para House of Ravers.",
         "image": "/images/houseofravers-thumb.png",
+        "imageWebP": "/images/houseofravers-thumb.webp",
         "tags": [
             "Desarrollo Web",
             "E-commerce"
@@ -15,6 +16,7 @@
         "title": "drspass.cl",
         "description": "Plataforma de gestión de contraseñas segura con IA",
         "image": "/images/drspass-thumb.png",
+        "imageWebP": "/images/drspass-thumb.webp",
         "tags": [
             "Seguridad",
             "IA"

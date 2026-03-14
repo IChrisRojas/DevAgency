@@ -33,12 +33,17 @@
 </section>
 
 <script>
-    import gsap from "gsap";
-    import ScrollTrigger from "gsap/ScrollTrigger";
-
-    gsap.registerPlugin(ScrollTrigger);
+    import { gsap, ScrollTrigger } from "../lib/gsap-setup";
 
     document.addEventListener("DOMContentLoaded", () => {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            document.querySelectorAll('.transition-content').forEach(el => {
+                (el as HTMLElement).style.opacity = '1';
+                (el as HTMLElement).style.transform = 'none';
+            });
+            return;
+        }
+
         gsap.to(".transition-content", {
             scrollTrigger: {
                 trigger: "#transition-logic",

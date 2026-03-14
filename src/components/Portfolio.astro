@@ -53,21 +53,30 @@ const projects = await getCollection("projects");
                         class={`project-card group cursor-pointer block`}
                         style="opacity: 0; transform: translateY(40px);"
                     >
-                        <div class="relative overflow-hidden rounded-none bg-white/[0.03] backdrop-blur-sm aspect-[4/5] mb-8 border border-white/5 group-hover:border-dev-accent/30 transition-all duration-700">
-                            <div class="absolute inset-0 bg-white/[0.01] overflow-hidden group-hover:scale-105 transition-transform duration-1000 ease-out">
-                                <img
-                                    src={project.data.image}
-                                    alt={`Captura de pantalla de ${project.data.title}`}
-                                    class="w-full h-full object-cover object-top opacity-60 group-hover:opacity-100 transition-opacity duration-700"
-                                />
-                                {/* Overlay for better text readability and premium feel */}
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
+                        <div class="relative overflow-hidden rounded-none bg-black aspect-[4/5] mb-8 border border-dev-accent/25 group-hover:border-dev-accent/60 transition-all duration-700 shadow-[0_0_0_1px_rgba(139,92,246,0.05)] group-hover:shadow-[0_0_40px_rgba(139,92,246,0.18)]">
+                            <div class="absolute inset-0 overflow-hidden group-hover:scale-105 transition-transform duration-1000 ease-out">
+                                <picture>
+                                    {project.data.imageWebP && (
+                                        <source srcset={project.data.imageWebP} type="image/webp" />
+                                    )}
+                                    <img
+                                        src={project.data.image}
+                                        alt={`Captura de pantalla de ${project.data.title}`}
+                                        loading="lazy"
+                                        decoding="async"
+                                        class="w-full h-full object-cover object-top opacity-70 group-hover:opacity-100 transition-opacity duration-700"
+                                    />
+                                </picture>
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
                             </div>
+                            <!-- Corner accent -->
+                            <div class="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-dev-accent/60 pointer-events-none" />
+                            <div class="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-dev-accent/60 pointer-events-none" />
                         </div>
 
-                        <div class="flex flex-wrap gap-3 mb-6">
+                        <div class="flex flex-wrap gap-3 mb-5">
                             {project.data.tags.map((tag) => (
-                                <span class="label-mono text-[8px] px-3 py-1 bg-white/5 text-slate-400 border border-white/5">
+                                <span class="label-mono text-[8px] px-3 py-1.5 bg-dev-accent/10 text-dev-accent/80 border border-dev-accent/20">
                                     {tag}
                                 </span>
                             ))}
@@ -75,7 +84,7 @@ const projects = await getCollection("projects");
                         <h3 class="text-3xl font-extrabold text-white mb-3 group-hover:text-dev-accent transition-colors tracking-tighter text-shadow-strong">
                             {project.data.title}
                         </h3>
-                        <p class="text-slate-300 font-normal line-clamp-2 text-shadow-subtle text-pretty">
+                        <p class="text-slate-200 font-normal line-clamp-2 text-shadow-subtle text-pretty">
                             {project.data.description}
                         </p>
                     </a>
@@ -86,10 +95,7 @@ const projects = await getCollection("projects");
 </section>
 
 <script>
-    import gsap from "gsap";
-    import ScrollTrigger from "gsap/ScrollTrigger";
-
-    gsap.registerPlugin(ScrollTrigger);
+    import { gsap, ScrollTrigger } from "../lib/gsap-setup";
 
     document.addEventListener("DOMContentLoaded", () => {
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {

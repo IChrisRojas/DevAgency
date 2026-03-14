@@ -7,6 +7,8 @@
   --font-body: 'Outfit', sans-serif;
   --font-display: 'Syne', sans-serif;
   --font-mono: 'Space Mono', monospace;
+  --font-orbitron: 'Orbitron', sans-serif;
+  --font-rajdhani: 'Rajdhani', sans-serif;
 }
 
 @layer base {
@@ -66,5 +68,9 @@
 
   .text-pretty {
     text-wrap: pretty;
+  }
+
+  .service-card {
+    will-change: opacity, transform;
   }
 }

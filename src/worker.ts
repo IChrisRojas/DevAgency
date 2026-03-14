@@ -21,7 +21,7 @@ export default {
         console.log('Name:', name);
         console.log('Email:', email);
         console.log('Message:', message);
-        console.log('Sending email to: contacto@aisolucion.cl');
+        console.log('Sending email to: hola@solucionai.cl');
         
         return new Response(JSON.stringify({ success: true, message: 'Form submitted successfully' }), {
           status: 200,

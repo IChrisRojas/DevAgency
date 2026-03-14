@@ -77,10 +77,22 @@ import { ChevronRight } from "lucide-react";
 </section>
 
 <script>
-    import gsap from "gsap";
+    import { gsap } from "../lib/gsap-setup";
 
     // Initial load animation mimicking dala.craftedbygc.com using GSAP
     document.addEventListener("DOMContentLoaded", () => {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            document.querySelectorAll('.hero-entry').forEach(el => {
+                (el as HTMLElement).style.opacity = '1';
+                (el as HTMLElement).style.transform = 'none';
+            });
+            return;
+        }
+
+        // Promote layers before animation starts
+        const heroEntries = document.querySelectorAll('.hero-entry') as NodeListOf<HTMLElement>;
+        heroEntries.forEach(el => el.style.willChange = 'opacity, transform');
+
         gsap.to(".hero-entry", {
             opacity: 1,
             y: 0,
@@ -88,6 +100,9 @@ import { ChevronRight } from "lucide-react";
             stagger: 0.2,
             ease: "power2.out",
             force3D: true, // Ensure hardware acceleration
+            onComplete: () => {
+                heroEntries.forEach(el => el.style.willChange = 'auto');
+            },
         });
     });
 </script>

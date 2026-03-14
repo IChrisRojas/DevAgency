@@ -7,6 +7,12 @@
     class="fixed top-0 left-0 w-full h-screen -z-10 pointer-events-none"
 ></canvas>
 
+<style>
+    #webgl-canvas {
+        contain: layout style paint;
+    }
+</style>
+
 <script>
     import {
         Scene,
@@ -26,8 +32,7 @@
     import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
     import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 
-    import gsap from "gsap";
-    import ScrollTrigger from "gsap/ScrollTrigger";
+    import { gsap, ScrollTrigger } from "../lib/gsap-setup";
 
     // ========== VERTEX SHADER — Partículas del modelo ==========
     const vertexShader = `
@@ -244,9 +249,13 @@
   }
   `;
 
-    gsap.registerPlugin(ScrollTrigger);
-
     const initWebGL = () => {
+        if (document.documentElement.getAttribute('data-reduced-motion') === 'true') {
+            const fallback = document.querySelector('#webgl-fallback');
+            if (fallback) fallback.classList.remove('hidden');
+            return;
+        }
+
         const canvas = document.querySelector(
             "#webgl-canvas",
         ) as HTMLCanvasElement;
@@ -285,13 +294,14 @@
             : Math.min(window.devicePixelRatio, 2.0);
         renderer.setPixelRatio(pixelRatio);
 
-        const renderScene = new RenderPass(scene, camera);
-        const composer = new EffectComposer(renderer);
-        composer.addPass(renderScene);
+        let composer: EffectComposer | null = null;
 
         if (!isMobile) {
+            const renderScene = new RenderPass(scene, camera);
+            composer = new EffectComposer(renderer);
+            composer.addPass(renderScene);
             const bloomPass = new UnrealBloomPass(
-                new Vector2(256, 256),
+                new Vector2(128, 128),
                 1.5,
                 0.4,
                 0.85,
@@ -303,7 +313,15 @@
         }
 
         // ========== PARTÍCULAS DEL MODELO (menor densidad para que se aprecie la forma nítida) ==========
-        const particleCount = isMobile ? 1800 : 4000;
+        function getParticleCount(): number {
+            if (!isMobile) return 2500;
+            const mem = (navigator as any).deviceMemory as number | undefined;
+            if (mem === undefined) return 800;
+            if (mem <= 2) return 400;
+            if (mem <= 4) return 800;
+            return 1800;
+        }
+        const particleCount = getParticleCount();
 
         const positions1 = new Float32Array(particleCount * 3);
         const positions2 = new Float32Array(particleCount * 3);
@@ -411,7 +429,6 @@
         });
 
         const bgParticles = new Points(bgGeometry, bgMaterial);
-        bgParticles.frustumCulled = false;
         scene.add(bgParticles);
 
         // ========== SISTEMA DE PARTÍCULAS DE MODELOS ==========
@@ -438,7 +455,6 @@
             });
 
             particleSystem = new Points(particlesGeometry, shaderMaterial);
-            particleSystem.frustumCulled = false;
             particleSystem.scale.set(0, 0, 0);
 
             const setInitialPosition = () => {
@@ -633,7 +649,7 @@
                         bgPositions[i * 3] = d.p[0];
                         bgPositions[i * 3 + 1] = d.p[1];
                         bgPositions[i * 3 + 2] = d.p[2];
-                        bgSizes[i] = d.s * (isMobile ? 4.0 : 2.5); // Boost background particles on mobile
+                        bgSizes[i] = d.s * (isMobile ? 2.0 : 2.5); // Corrected mobile boost ratio
                         bgVelocities[i * 3] = d.v[0];
                         bgVelocities[i * 3 + 1] = d.v[1];
                         bgVelocities[i * 3 + 2] = d.v[2];
@@ -686,19 +702,29 @@
                         ease: "power2.out",
                     });
                 } catch (e) {
-                    console.error("Error loading point cache:", e);
+                    console.error("WebGL cache load failed:", e);
+                    const canvasEl = document.querySelector('#webgl-canvas') as HTMLCanvasElement;
+                    const fallback = document.querySelector('#webgl-fallback') as HTMLElement;
+                    if (canvasEl) canvasEl.style.display = 'none';
+                    if (fallback) fallback.classList.remove('hidden');
+                    return;
                 }
             }
 
             loadCache();
 
             const clock = new Clock();
+            let animationFrameId: number;
             function animate() {
-                requestAnimationFrame(animate);
+                animationFrameId = requestAnimationFrame(animate);
                 const elapsedTime = clock.getElapsedTime();
                 shaderMaterial.uniforms.uTime.value = elapsedTime;
                 bgMaterial.uniforms.uTime.value = elapsedTime;
-                composer.render();
+                if (composer) {
+                    composer.render();
+                } else {
+                    renderer.render(scene, camera);
+                }
             }
             animate();
 
@@ -715,11 +741,40 @@
                     camera.aspect = window.innerWidth / currentHeight;
                     camera.updateProjectionMatrix();
                     renderer.setSize(window.innerWidth, currentHeight);
-                    composer.setSize(window.innerWidth, currentHeight);
+                    if (composer) {
+                        composer.setSize(window.innerWidth, currentHeight);
+                    }
                     shaderMaterial.uniforms.uSizeFactor.value =
                         getParticleSizeFactor();
                     setInitialPosition();
                 }, 250);
+            });
+
+            // --- PAGE VISIBILITY: pause/resume render loop ---
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    cancelAnimationFrame(animationFrameId);
+                } else {
+                    animate();
+                }
+            });
+
+            // --- RESOURCE DISPOSAL: on actual page unload ---
+            window.addEventListener('beforeunload', () => {
+                cancelAnimationFrame(animationFrameId);
+                // Geometries
+                particlesGeometry.dispose();
+                bgGeometry.dispose();
+                // Materials
+                shaderMaterial.dispose();
+                bgMaterial.dispose();
+                // Post-processing (desktop only)
+                if (composer) {
+                    composer.passes.forEach((pass: any) => pass.dispose?.());
+                    composer.dispose();
+                }
+                // Renderer (last — releases WebGL context)
+                renderer.dispose();
             });
         }
     };

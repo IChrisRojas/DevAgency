@@ -8,7 +8,7 @@ interface Props {
 }
 
 const {
-	title = "aisolucion.cl | Soluciones de Software y de IA Modernas",
+	title = "solucionAI | Soluciones de Software y de IA Modernas",
 	description = "Construimos software escalable de primera calidad y soluciones de inteligencia artificial para acelerar el crecimiento de su negocio.",
 } = Astro.props;
 ---
@@ -25,30 +25,30 @@ const {
 		
 		<!-- Open Graph / Facebook -->
 		<meta property="og:type" content="website" />
-		<meta property="og:url" content="https://aisolucion.cl/" />
+		<meta property="og:url" content="https://solucionai.cl/" />
 		<meta property="og:title" content={title} />
 		<meta property="og:description" content={description} />
-		<meta property="og:image" content="https://aisolucion.cl/images/og-image.png" />
+		<meta property="og:image" content="https://solucionai.cl/images/og-image.png" />
 		
 		<!-- Twitter -->
 		<meta property="twitter:card" content="summary_large_image" />
-		<meta property="twitter:url" content="https://aisolucion.cl/" />
+		<meta property="twitter:url" content="https://solucionai.cl/" />
 		<meta property="twitter:title" content={title} />
 		<meta property="twitter:description" content={description} />
-		<meta property="twitter:image" content="https://aisolucion.cl/images/og-image.png" />
+		<meta property="twitter:image" content="https://solucionai.cl/images/og-image.png" />
 		
-		<!-- Google Fonts: Syne, Outfit, Space Mono -->
+		<!-- Google Fonts: Syne, Outfit, Space Mono, Orbitron, Rajdhani -->
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link
-			href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&family=Syne:wght@700;800&display=swap"
+			href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Outfit:wght@400;600;700&family=Space+Mono:wght@400;700&family=Syne:wght@700;800&display=swap"
 			rel="stylesheet"
 			media="print"
 			onload="this.media='all'"
 		/>
 		<noscript>
 			<link
-				href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&family=Syne:wght@700;800&display=swap"
+				href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Outfit:wght@400;600;700&family=Space+Mono:wght@400;700&family=Syne:wght@700;800&display=swap"
 				rel="stylesheet"
 			/>
 		</noscript>
@@ -58,6 +58,24 @@ const {
 		class="bg-black text-white min-h-screen flex flex-col overflow-x-hidden selection:bg-dev-accent selection:text-white"
 	>
 		<div class="grain-overlay pointer-events-none fixed inset-0 z-50 opacity-[0.03]"></div>
+		<div
+			id="webgl-fallback"
+			class="hidden fixed inset-0 -z-10 pointer-events-none"
+			style="background: radial-gradient(ellipse at 50% 30%, rgba(139,92,246,0.12) 0%, transparent 70%);"
+		></div>
+		<script>
+			const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+			if (mq.matches) {
+				document.documentElement.setAttribute('data-reduced-motion', 'true');
+			}
+			mq.addEventListener('change', (e) => {
+				if (e.matches) {
+					document.documentElement.setAttribute('data-reduced-motion', 'true');
+				} else {
+					document.documentElement.removeAttribute('data-reduced-motion');
+				}
+			});
+		</script>
 		<WebGLBackground />
 		<slot />
 	</body>
