@@ -1,6 +1,6 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "dev",
+	"name": "solucionai",
 	"compatibility_date": "2025-02-24",
 	"main": "src/worker.ts",
 	"assets": {
